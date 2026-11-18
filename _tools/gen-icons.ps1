@@ -40,13 +40,14 @@ for($y=0;$y -lt $sh;$y++){ for($x=0;$x -lt $sw;$x++){
 $b=Bounds $sil
 Write-Output ("runner bbox: ({0},{1})-({2},{3})  w={4} h={5}" -f $b[0],$b[1],$b[2],$b[3],($b[2]-$b[0]+1),($b[3]-$b[1]+1))
 
-# legacy launcher icons: transparent bg + silhouette at 82%
+# legacy launcher icons: soft pink bg + silhouette at 82%
+$bgColor=[System.Drawing.Color]::FromArgb(255,244,181,201)
 $legacy = @{ mdpi=48; hdpi=72; xhdpi=96; xxhdpi=144; xxxhdpi=192 }
 foreach($k in $legacy.Keys){
   $size=$legacy[$k]
   $bmp=New-Object System.Drawing.Bitmap($size,$size,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
   $g=[System.Drawing.Graphics]::FromImage($bmp)
-  $g.Clear([System.Drawing.Color]::Transparent)
+  $g.Clear($bgColor)
   DrawCentered $g $sil ($size/2) ($size/2) ($size*0.82)
   $g.Dispose()
   Save $bmp (Join-Path $Out "mipmap-$k\ic_launcher.png")
