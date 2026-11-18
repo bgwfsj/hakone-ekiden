@@ -199,7 +199,7 @@ async function main(){
   const menuVer = await ev("document.getElementById('menuVer').textContent");
   console.log('菜单打开: ' + menuOpen + ' 版本: ' + menuVer);
   if (!menuOpen) throw new Error('菜单未打开');
-  if (menuVer !== '版本 v1.0.10') throw new Error('菜单版本号错误: ' + menuVer);
+  if (menuVer !== '版本 v1.0.11') throw new Error('菜单版本号错误: ' + menuVer);
   const hasExport = await ev("document.getElementById('menuExport') !== null");
   const hasImport = await ev("document.getElementById('menuImport') !== null");
   console.log('菜单含导出/导入: ' + hasExport + '/' + hasImport);
@@ -210,8 +210,8 @@ async function main(){
   const clCount = await ev("document.querySelectorAll('#changelog li').length");
   console.log('关于打开: ' + aboutOpen + ' 版本: ' + aboutVer + ' 更新记录: ' + clCount);
   if (!aboutOpen) throw new Error('关于未打开');
-  if (aboutVer !== 'v1.0.10') throw new Error('关于版本号错误: ' + aboutVer);
-  if (clCount !== 11) throw new Error('更新记录应为 11 条');
+  if (aboutVer !== 'v1.0.11') throw new Error('关于版本号错误: ' + aboutVer);
+  if (clCount !== 12) throw new Error('更新记录应为 11 条');
   await ev("document.getElementById('aboutDone').click()");
   await ev("document.getElementById('menuBtn').click()");
   await ev("document.getElementById('menuCheckUpdate').click()");

@@ -141,6 +141,10 @@ body{
 .stat .num small{font-size:11px;color:var(--weak);font-weight:400;margin-left:2px;}
 .stat .lbl{margin-top:6px;font-size:11px;color:var(--weak);letter-spacing:.2em;}
 
+
+/* ---------- 次数 / 平均配速（第二行） ---------- */
+.stats-b{border-top:1px solid var(--line-soft);padding:14px 6px 18px;margin-top:2px;}
+
 .best{border-top:1px solid var(--line-soft);padding:10px 2px 2px;margin-top:2px;}
 .best-row{display:grid;grid-template-columns:auto 1fr;align-items:center;padding:5px 0;gap:12px;}
 .best-k{font-size:11px;color:var(--weak);letter-spacing:.1em;white-space:nowrap;}

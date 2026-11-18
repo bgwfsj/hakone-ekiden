@@ -149,6 +149,10 @@ body{
 .stat .num small{font-size:11px;color:var(--weak);font-weight:400;margin-left:2px;}
 .stat .lbl{margin-top:6px;font-size:11px;color:var(--weak);letter-spacing:.2em;}
 
+
+/* ---------- 次数 / 平均配速（第二行） ---------- */
+.stats-b{border-top:1px solid var(--line-soft);padding:14px 6px 18px;margin-top:2px;}
+
 .best{border-top:1px solid var(--line-soft);padding:10px 2px 2px;margin-top:2px;}
 .best-row{display:grid;grid-template-columns:auto 1fr;align-items:center;padding:5px 0;gap:12px;}
 .best-k{font-size:11px;color:var(--weak);letter-spacing:.1em;white-space:nowrap;}
@@ -356,16 +360,18 @@ body{padding:6px 2px 18px;}
   <section class="card">
     <div class="stats">
       <div class="stat">
-        <div class="num mono" id="statCount">0</div>
-        <div class="lbl">次数</div>
-      </div>
-      <div class="stat">
         <div class="num mono" id="statDist">0.00<small>km</small></div>
         <div class="lbl">距离</div>
       </div>
       <div class="stat">
         <div class="num mono" id="statTime">0:00</div>
         <div class="lbl">时长</div>
+      </div>
+    </div>
+    <div class="stats stats-b">
+      <div class="stat">
+        <div class="num mono" id="statCount">0</div>
+        <div class="lbl">次数</div>
       </div>
       <div class="stat">
         <div class="num mono" id="statPace">&mdash;</div>
@@ -622,8 +628,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.0.10';
+var APP_VERSION = '1.0.11';
 var APP_CHANGELOG = [
+  'v1.0.11 · 统计重排：次数与平均配速一行、距离与时长一行，手机上更清爽',
   'v1.0.10 · 修复在线更新安装：改用系统安装会话，异常不再闪退并提示手动安装',
   'v1.0.9 · 目标框重排：含金量在进度条之上、最佳一次在下方且去掉达成%；总距离显示整数；最长距离/最快配速统一「距离·配速·日期」并补位对齐；平均配速并入总统计',
   'v1.0.8 · 优化在线更新：直连 GitHub 不畅时自动切换镜像通道，检查与下载更稳',
