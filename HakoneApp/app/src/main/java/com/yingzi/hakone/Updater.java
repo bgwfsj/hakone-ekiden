@@ -35,9 +35,9 @@ import java.util.regex.Pattern;
 
 /**
  * 应用内更新：
- * 1. 查 GitHub Releases/latest（API 优先，失败自动改用网页接口，避免 API 限流）
+ * 1. 查 GitHub Releases/latest（API 优先，失败自动改用网页接口，再不行走加速镜像，避免限流/被阻断）
  * 2. 发现新版本 -> 弹窗确认 -> 先自动备份存档（保留最近 2 份）-> 下载
- * 3. 下载走通知栏进度，SHA-256 校验通过后经 FileProvider 唤起系统安装器
+ * 3. 下载直连 GitHub，不畅时自动切换镜像通道；SHA-256 校验通过后经 FileProvider 唤起系统安装器
  */
 public class Updater {
     /** GitHub 仓库：在线更新从这里拉取 Release */
@@ -46,6 +46,8 @@ public class Updater {
     private static final String UA = "HakoneEkiden-Update/1.0";
     private static final String CHANNEL_ID = "update";
     private static final int NOTIFY_ID = 1001;
+    /** 加速镜像前缀：直连 GitHub 不畅时自动切换 */
+    private static final String MIRROR = "https://gh-proxy.com/";
 
     private final MainActivity activity;
     private final WebView web;
@@ -61,11 +63,13 @@ public class Updater {
         String version;
         String apiAssetUrl;
         String browserUrl;
+        String mirrorUrl;
         String sha256;
-        UpdateInfo(String version, String apiAssetUrl, String browserUrl, String sha256) {
+        UpdateInfo(String version, String apiAssetUrl, String browserUrl, String mirrorUrl, String sha256) {
             this.version = version;
             this.apiAssetUrl = apiAssetUrl;
             this.browserUrl = browserUrl;
+            this.mirrorUrl = mirrorUrl;
             this.sha256 = sha256;
         }
     }
@@ -94,9 +98,24 @@ public class Updater {
     }
 
     private UpdateInfo fetchLatest() {
-        // 1) GitHub API
+        // 1) GitHub API 直连
+        UpdateInfo info = tryApi("https://api.github.com/repos/" + OWNER + "/" + REPO + "/releases/latest");
+        if (info != null) return info;
+
+        // 2) GitHub 网页接口兜底（没有 API 配额限制）
+        info = tryWeb("https://github.com/" + OWNER + "/" + REPO + "/releases/latest");
+        if (info != null) return info;
+
+        // 3) 加速镜像兜底（gh-proxy.com）：直连被限流/阻断时走这里
+        info = tryApi(MIRROR + "https://api.github.com/repos/" + OWNER + "/" + REPO + "/releases/latest");
+        if (info != null) return info;
+
+        return null;
+    }
+
+    private UpdateInfo tryApi(String urlStr) {
         try {
-            JSONObject rel = getJson("https://api.github.com/repos/" + OWNER + "/" + REPO + "/releases/latest");
+            JSONObject rel = getJson(urlStr);
             if (rel != null) {
                 String tag = rel.optString("tag_name", "");
                 String version = tag.startsWith("v") ? tag.substring(1) : tag;
@@ -108,21 +127,24 @@ public class Updater {
                         if (a.optString("name", "").endsWith(".apk")) {
                             String digest = a.optString("digest", "");
                             String sha = digest.startsWith("sha256:") ? digest.substring(7) : null;
-                            return new UpdateInfo(version, a.optString("url", null),
-                                    a.optString("browser_download_url", null), sha);
+                            String dl = a.optString("browser_download_url", null);
+                            return new UpdateInfo(version, a.optString("url", null), dl,
+                                    dl != null ? MIRROR + dl : null, sha);
                         }
                     }
                 }
             }
         } catch (Exception ignored) { }
+        return null;
+    }
 
-        // 2) 网页接口兜底（没有 API 配额限制）
+    private UpdateInfo tryWeb(String latestUrl) {
         try {
-            String finalUrl = getFinalUrl("https://github.com/" + OWNER + "/" + REPO + "/releases/latest");
+            String finalUrl = getFinalUrl(latestUrl);
             Matcher m = Pattern.compile("releases/tag/([^/?#]+)").matcher(finalUrl);
             if (m.find()) {
                 String tag = m.group(1);
-                String page = getText("https://github.com/" + OWNER + "/" + REPO + "/releases/expanded_assets/" + tag);
+                String page = getText("https://github.com/" + OWNER + "/" + REPO + "/releases/expanded_assets/" + tag, "text/html");
                 if (page != null) {
                     Matcher am = Pattern.compile("href=\"([^\"]*\\.apk)\"").matcher(page);
                     if (am.find()) {
@@ -130,7 +152,7 @@ public class Updater {
                         String file = href.substring(href.lastIndexOf('/') + 1);
                         String dl = "https://github.com/" + OWNER + "/" + REPO + "/releases/download/" + tag + "/" + file;
                         String version = tag.startsWith("v") ? tag.substring(1) : tag;
-                        return new UpdateInfo(version, null, dl, null);
+                        return new UpdateInfo(version, null, dl, MIRROR + dl, null);
                     }
                 }
             }
@@ -145,6 +167,10 @@ public class Updater {
     }
 
     private String getText(String urlStr) {
+        return getText(urlStr, "application/vnd.github+json");
+    }
+
+    private String getText(String urlStr, String accept) {
         HttpURLConnection c = null;
         try {
             URL u = new URL(urlStr);
@@ -153,7 +179,7 @@ public class Updater {
             c.setConnectTimeout(15000);
             c.setReadTimeout(20000);
             c.setRequestProperty("User-Agent", UA);
-            c.setRequestProperty("Accept", "application/vnd.github+json");
+            c.setRequestProperty("Accept", accept);
             int code = c.getResponseCode();
             InputStream in = code >= 400 ? c.getErrorStream() : c.getInputStream();
             if (in == null) return null;
@@ -232,50 +258,63 @@ public class Updater {
                 File dir = new File(activity.getCacheDir(), "update");
                 if (!dir.exists()) dir.mkdirs();
                 final File apk = new File(dir, "hakone.apk");
-                HttpURLConnection c = null;
-                try {
-                    String urlStr = info.browserUrl != null ? info.browserUrl : info.apiAssetUrl;
-                    c = (HttpURLConnection) new URL(urlStr).openConnection();
-                    c.setInstanceFollowRedirects(true);
-                    c.setConnectTimeout(20000);
-                    c.setReadTimeout(60000);
-                    c.setRequestProperty("User-Agent", UA);
-                    if (info.browserUrl == null) c.setRequestProperty("Accept", "application/octet-stream");
-                    int code = c.getResponseCode();
-                    if (code != 200) {
-                        notifyPage("下载失败（HTTP " + code + "）");
-                        return;
-                    }
-                    long size = c.getContentLengthLong();
-                    InputStream in = c.getInputStream();
-                    FileOutputStream fos = new FileOutputStream(apk);
-                    byte[] buf = new byte[8192];
-                    int n;
-                    long done = 0;
-                    while ((n = in.read(buf)) > 0) {
-                        fos.write(buf, 0, n);
-                        done += n;
-                        updateProgress(done, size);
-                    }
-                    fos.close();
-                    in.close();
-                    if (info.sha256 != null && !sha256(apk).equalsIgnoreCase(info.sha256)) {
-                        notifyPage("下载校验失败，请重试");
-                        apk.delete();
-                        return;
-                    }
-                    progressDone("下载完成，准备安装…");
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() { install(apk); }
-                    });
-                } catch (Exception e) {
-                    notifyPage("下载失败：" + (e.getMessage() != null ? e.getMessage() : "网络错误"));
-                } finally {
-                    if (c != null) c.disconnect();
+                if (apk.exists()) apk.delete();
+                // 1) 直连 GitHub 下载
+                String direct = info.browserUrl != null ? info.browserUrl : info.apiAssetUrl;
+                int r = downloadFrom(direct, apk, info.sha256, info.browserUrl == null);
+                // 2) 直连失败/校验失败 -> 自动切换加速镜像
+                if (r != 200 && info.mirrorUrl != null) {
+                    notifyPage("直连不畅，切换镜像通道下载…");
+                    apk.delete();
+                    r = downloadFrom(info.mirrorUrl, apk, info.sha256, false);
                 }
+                if (r != 200) {
+                    notifyPage(r < 0 ? "下载失败（网络错误），请稍后重试" : "下载失败（HTTP " + r + "），请稍后重试");
+                    apk.delete();
+                    return;
+                }
+                progressDone("下载完成，准备安装…");
+                final File fapk = apk;
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() { install(fapk); }
+                });
             }
         }).start();
+    }
+
+    /** @return 200=成功；-1=网络异常；-2=SHA-256 校验失败；其他=HTTP 状态码 */
+    private int downloadFrom(String urlStr, File apk, String sha, boolean apiAsset) {
+        HttpURLConnection c = null;
+        try {
+            c = (HttpURLConnection) new URL(urlStr).openConnection();
+            c.setInstanceFollowRedirects(true);
+            c.setConnectTimeout(20000);
+            c.setReadTimeout(60000);
+            c.setRequestProperty("User-Agent", UA);
+            if (apiAsset) c.setRequestProperty("Accept", "application/octet-stream");
+            int code = c.getResponseCode();
+            if (code != 200) return code;
+            long size = c.getContentLengthLong();
+            InputStream in = c.getInputStream();
+            FileOutputStream fos = new FileOutputStream(apk);
+            byte[] buf = new byte[8192];
+            int n;
+            long done = 0;
+            while ((n = in.read(buf)) > 0) {
+                fos.write(buf, 0, n);
+                done += n;
+                updateProgress(done, size);
+            }
+            fos.close();
+            in.close();
+            if (sha != null && !sha256(apk).equalsIgnoreCase(sha)) return -2;
+            return 200;
+        } catch (Exception e) {
+            return -1;
+        } finally {
+            if (c != null) c.disconnect();
+        }
     }
 
     private void updateProgress(long done, long size) {
@@ -297,7 +336,6 @@ public class Updater {
         NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm == null) return;
         NotificationCompat.Builder b = new NotificationCompat.Builder(activity, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_stat_run)
                 .setContentTitle("更新")
                 .setContentText(text)
                 .setProgress(0, 0, false)
