@@ -40,8 +40,8 @@ import java.util.regex.Pattern;
  * 3. 下载走通知栏进度，SHA-256 校验通过后经 FileProvider 唤起系统安装器
  */
 public class Updater {
-    /** 上线前改为真实 GitHub 仓库 */
-    private static final String OWNER = "yingzi";
+    /** GitHub 仓库：在线更新从这里拉取 Release */
+    private static final String OWNER = "bgwfsj";
     private static final String REPO = "hakone-ekiden";
     private static final String UA = "HakoneEkiden-Update/1.0";
     private static final String CHANNEL_ID = "update";
