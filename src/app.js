@@ -29,8 +29,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.0.0';
+var APP_VERSION = '1.0.1';
 var APP_CHANGELOG = [
+  'v1.0.1 · 名言改为每日一句：按日期固定、不可刷新、去掉卡片',
   'v1.0.0 · 首版：跑步记录、统计、目标含金量、日历、在线更新与自动备份'
 ];
 
@@ -89,12 +90,11 @@ function hhmm(ts){
 }
 
 /* ---------- 渲染 ---------- */
+/* 每日一句：按本地日期固定，跨天自动切换 */
 function renderQuote(){
-  var last = null;
-  try{ last = Number(sessionStorage.getItem('hakone_last_quote')); }catch(e){}
-  var idx = Math.floor(Math.random()*quotes.length);
-  if(quotes.length > 1 && !isNaN(last) && idx === last) idx = (idx+1) % quotes.length;
-  try{ sessionStorage.setItem('hakone_last_quote', String(idx)); }catch(e){}
+  var d = new Date();
+  var dayNum = d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+  var idx = dayNum % quotes.length;
   var el = $('quoteText');
   el.style.animation = 'none';
   void el.offsetWidth;
@@ -386,8 +386,6 @@ function toast(msg){
 function bind(id, evt, fn){ $(id).addEventListener(evt, fn); }
 
 bind('recordBtn', 'click', openRecord);
-bind('quoteRefresh', 'click', function(e){ e.stopPropagation(); renderQuote(); });
-bind('quoteCard', 'click', renderQuote);
 bind('sheetClose', 'click', closeSheets);
 bind('sheetCancel', 'click', closeSheets);
 bind('sheetSave', 'click', saveRecord);
@@ -468,11 +466,5 @@ bind('aboutDone', 'click', closeSheets);
   $('menuVer').textContent = '版本 v' + APP_VERSION;
   renderQuote();
   refreshAll();
-  (function quoteLoop(){
-    setTimeout(function(){
-      renderQuote();
-      quoteLoop();
-    }, 25000);
-  })();
 })();
 })();

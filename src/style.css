@@ -76,23 +76,15 @@ body{
   margin-bottom:14px;
 }
 
-/* ---------- 名言 ---------- */
-.quote{position:relative;padding:24px 20px 18px;}
-.quote .refresh{
-  position:absolute;top:12px;right:12px;
-  width:30px;height:30px;border:none;border-radius:50%;
-  background:transparent;color:var(--weak);font-size:16px;cursor:pointer;
-  transition:background .2s,color .2s;
-}
-.quote .refresh:hover{background:rgba(13,32,45,.05);color:var(--sub);}
-.quote .refresh svg{display:block;margin:auto;}
+/* ---------- 每日一言 ---------- */
+.quote{padding:10px 8px 16px;}
 .quote-text{
-  font-size:16.5px;line-height:1.65;font-weight:500;
-  padding-right:26px;
-  animation:quoteIn .5s cubic-bezier(.22,.61,.36,1);
+  font-size:17px;line-height:1.7;font-weight:500;
+  animation:quoteIn .6s cubic-bezier(.22,.61,.36,1), quoteBreath 5s ease-in-out 1s infinite;
 }
-.quote-author{text-align:right;margin-top:10px;font-size:11px;color:var(--weak);letter-spacing:.06em;}
+.quote-author{text-align:right;margin-top:8px;font-size:11px;color:var(--weak);letter-spacing:.06em;}
 @keyframes quoteIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@keyframes quoteBreath{0%,100%{opacity:1;}50%{opacity:.78;}}
 
 /* ---------- 目标 ---------- */
 .goal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;}

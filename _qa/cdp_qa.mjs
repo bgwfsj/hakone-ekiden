@@ -64,6 +64,9 @@ async function main(){
   const q = await ev("document.querySelector('#quoteText').textContent");
   console.log('名言: ' + q);
   if (!q || !q.startsWith('“')) throw new Error('名言未渲染');
+  const noRefresh = await ev("document.getElementById('quoteRefresh') === null");
+  console.log('名言无刷新按钮: ' + noRefresh);
+  if (!noRefresh) throw new Error('每日名言不应有刷新按钮');
   const goalPct0 = await ev("document.querySelector('#goalPct').textContent");
   const goalPoem0 = await ev("document.querySelector('#goalPoem').textContent");
   console.log('空状态含金量: ' + goalPct0 + ' 文案: ' + goalPoem0);
@@ -148,15 +151,15 @@ async function main(){
   const menuVer = await ev("document.getElementById('menuVer').textContent");
   console.log('菜单打开: ' + menuOpen + ' 版本: ' + menuVer);
   if (!menuOpen) throw new Error('菜单未打开');
-  if (menuVer !== '版本 v1.0.0') throw new Error('菜单版本号错误: ' + menuVer);
+  if (menuVer !== '版本 v1.0.1') throw new Error('菜单版本号错误: ' + menuVer);
   await ev("document.getElementById('menuAbout').click()");
   const aboutOpen = await ev("document.getElementById('aboutSheet').classList.contains('open')");
   const aboutVer = await ev("document.getElementById('aboutVer').textContent");
   const clCount = await ev("document.querySelectorAll('#changelog li').length");
   console.log('关于打开: ' + aboutOpen + ' 版本: ' + aboutVer + ' 更新记录: ' + clCount);
   if (!aboutOpen) throw new Error('关于未打开');
-  if (aboutVer !== 'v1.0.0') throw new Error('关于版本号错误: ' + aboutVer);
-  if (clCount !== 1) throw new Error('更新记录应为 1 条');
+  if (aboutVer !== 'v1.0.1') throw new Error('关于版本号错误: ' + aboutVer);
+  if (clCount !== 2) throw new Error('更新记录应为 2 条');
   await ev("document.getElementById('aboutDone').click()");
   await ev("document.getElementById('menuBtn').click()");
   await ev("document.getElementById('menuCheckUpdate').click()");
