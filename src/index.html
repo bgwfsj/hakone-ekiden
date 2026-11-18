@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f8fa">
+<title>英子の箱根驿传</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <span class="dot" aria-hidden="true"></span>
+    <span class="brand">英子の箱根驿传</span>
+    <button class="menu-btn" id="menuBtn" aria-label="菜单">&#8230;</button>
+  </header>
+
+  <!-- 名言 -->
+  <section class="card quote" id="quoteCard" role="button" tabindex="0" aria-label="换一句名言">
+    <button class="refresh" id="quoteRefresh" aria-label="换一句"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg></button>
+    <p class="quote-text" id="quoteText"></p>
+    <p class="quote-author" id="quoteAuthor"></p>
+  </section>
+
+  <!-- 目标：一小时十公里 -->
+  <section class="card goal">
+    <div class="goal-head">
+      <span class="kicker">目标 · 一小时十公里</span>
+      <div class="goal-head-right">
+        <span class="goal-meta">配速 6&#39;00&quot;</span>
+        <button class="info-btn" id="goalInfo" aria-label="进度如何计算">?</button>
+      </div>
+    </div>
+    <div class="bar"><div class="bar-fill" id="goalBar"></div></div>
+    <div class="goal-nums">
+      <span class="big mono" id="goalPct">0%</span>
+      <span class="goal-best mono" id="goalBest"></span>
+    </div>
+    <div class="last-row">
+      <span class="last-lbl">上一次</span>
+      <div class="last-bar"><div class="last-fill" id="goalLastBar"></div></div>
+      <span class="last-val mono" id="goalLastVal">&mdash;</span>
+    </div>
+    <p class="goal-pred mono" id="goalPred"></p>
+    <p class="poem" id="goalPoem"></p>
+  </section>
+
+  <!-- 记录按钮 -->
+  <button class="record-btn" id="recordBtn">&#65291; 记录一次</button>
+
+  <!-- 统计 -->
+  <section class="card stats">
+    <div class="stat">
+      <div class="num mono" id="statCount">0</div>
+      <div class="lbl">次数</div>
+    </div>
+    <div class="stat">
+      <div class="num mono" id="statDist">0.00<small>km</small></div>
+      <div class="lbl">距离</div>
+    </div>
+    <div class="stat">
+      <div class="num mono" id="statTime">0:00</div>
+      <div class="lbl">时长</div>
+    </div>
+  </section>
+  <p class="avg mono" id="avgPace">平均配速 · &mdash;</p>
+
+  <!-- 日历 -->
+  <section class="card cal">
+    <div class="cal-head">
+      <span class="cal-title" id="calTitle"></span>
+      <div class="cal-nav">
+        <button class="nav" id="calPrev" aria-label="上一月">&#8249;</button>
+        <button class="nav today-nav" id="calToday">今</button>
+        <button class="nav" id="calNext" aria-label="下一月">&#8250;</button>
+      </div>
+    </div>
+    <div class="cal-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+    <div class="cal-grid" id="calGrid"></div>
+    <p class="cal-hint">蓝色圆点 &middot; 跑步的日子</p>
+  </section>
+
+  <footer class="foot">英子の箱根驿传 &middot; 从 0 到 10 km</footer>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<!-- 记录 / 修改 sheet -->
+<div class="sheet" id="recordSheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <div>
+      <div class="sheet-title" id="sheetTitle">记录一次</div>
+      <div class="sheet-sub">跑过的路，都算数。</div>
+    </div>
+    <button class="sheet-close" id="sheetClose" aria-label="关闭">&#215;</button>
+  </div>
+  <div class="sheet-body">
+    <div class="field">
+      <label>时间</label>
+      <div class="field-ctrl">
+        <input type="datetime-local" id="fTime">
+        <button class="chip" id="fNow">此刻</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>距离</label>
+      <div class="field-ctrl">
+        <input type="number" id="fDist" inputmode="decimal" placeholder="5.00" step="0.01" min="0" max="100">
+        <span class="suffix">km</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>时长</label>
+      <div class="field-ctrl dur">
+        <input type="number" id="fMin" inputmode="numeric" placeholder="32" min="0" max="999" aria-label="分钟">
+        <span class="colon">:</span>
+        <input type="number" id="fSec" inputmode="numeric" placeholder="15" min="0" max="59" aria-label="秒">
+      </div>
+    </div>
+    <div class="pace-chip" id="paceChip">配速 <span id="paceVal" class="mono">&mdash;</span></div>
+    <div class="field">
+      <label>感受 <span class="opt">· 可不填</span></label>
+      <div class="field-ctrl">
+        <textarea id="fNote" maxlength="100" rows="3" placeholder="今天跑起来的感觉&hellip;&hellip;"></textarea>
+        <span class="counter" id="noteCount">0/100</span>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-foot">
+    <button class="btn ghost" id="sheetCancel">取消</button>
+    <button class="btn primary" id="sheetSave">保存</button>
+  </div>
+</div>
+
+<!-- 某天详情 sheet -->
+<div class="sheet" id="detailSheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <div>
+      <div class="sheet-title" id="detailTitle"></div>
+      <div class="sheet-sub" id="detailSub"></div>
+    </div>
+    <button class="sheet-close" id="detailClose" aria-label="关闭">&#215;</button>
+  </div>
+  <div class="sheet-body" id="detailList"></div>
+  <div class="sheet-foot">
+    <button class="btn ghost" id="detailDone">完成</button>
+  </div>
+</div>
+
+<!-- 目标说明 sheet -->
+<div class="sheet" id="infoSheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <div>
+      <div class="sheet-title">进度怎么算</div>
+      <div class="sheet-sub">目标：一次跑完 10 km &middot; 用时 &le; 60 分</div>
+    </div>
+    <button class="sheet-close" id="infoClose" aria-label="关闭">&#215;</button>
+  </div>
+  <div class="sheet-body info-body">
+    <div class="info-item">
+      <div class="info-k">单次含金量</div>
+      <div class="info-v">距离达成 &times; 配速达成</div>
+    </div>
+    <div class="info-item">
+      <div class="info-k">距离达成</div>
+      <div class="info-v">本次距离 &divide; 10 km，封顶 100%</div>
+    </div>
+    <div class="info-item">
+      <div class="info-k">配速达成</div>
+      <div class="info-v">6&#39;00&quot; 记 100%，8&#39;00&quot; 记 0%，每快 30 秒约 +25%</div>
+    </div>
+    <div class="info-item">
+      <div class="info-k">综合进度</div>
+      <div class="info-v">历史所有记录里，单次含金量最高的那一次</div>
+    </div>
+    <div class="info-item">
+      <div class="info-k">上一次</div>
+      <div class="info-v">最近一次跑步的含金量，仅供参考</div>
+    </div>
+    <div class="info-item">
+      <div class="info-k">达成条件</div>
+      <div class="info-v">出现一次 &ge;10 km 且配速 &le;6&#39;00&quot; 的记录</div>
+    </div>
+    <p class="info-eg mono">例：9 km @ 6&#39;00&quot; &rarr; 90% &times; 100% = 90%</p>
+  </div>
+  <div class="sheet-foot">
+    <button class="btn ghost" id="infoDone">知道啦</button>
+  </div>
+</div>
+<!-- 菜单 sheet -->
+<div class="sheet" id="menuSheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <div>
+      <div class="sheet-title">菜单</div>
+      <div class="sheet-sub" id="menuVer"></div>
+    </div>
+    <button class="sheet-close" id="menuClose" aria-label="关闭">&#215;</button>
+  </div>
+  <div class="menu-list">
+    <button class="menu-item" id="menuCheckUpdate"><span>检查更新</span><span class="arrow">&#8250;</span></button>
+    <button class="menu-item" id="menuBackup"><span>备份存档</span><span class="arrow">&#8250;</span></button>
+    <button class="menu-item" id="menuAbout"><span>关于与更新记录</span><span class="arrow">&#8250;</span></button>
+  </div>
+</div>
+
+<!-- 关于 sheet -->
+<div class="sheet" id="aboutSheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <div>
+      <div class="sheet-title">英子の箱根驿传</div>
+      <div class="sheet-sub" id="aboutVer"></div>
+    </div>
+    <button class="sheet-close" id="aboutClose" aria-label="关闭">&#215;</button>
+  </div>
+  <div class="sheet-body">
+    <p class="about-line">从 0 开始，跑向一小时十公里。</p>
+    <div class="about-k">更新记录</div>
+    <ul class="changelog" id="changelog"></ul>
+  </div>
+  <div class="sheet-foot">
+    <button class="btn ghost" id="aboutDone">完成</button>
+  </div>
+</div>
+<!-- 删除确认 sheet -->
+<div class="sheet" id="confirmSheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <div class="confirm-body">
+    <div class="sheet-title">删除这条记录？</div>
+    <div class="sheet-sub">删掉的路，风还记得。</div>
+  </div>
+  <div class="sheet-foot">
+    <button class="btn ghost" id="confirmCancel">取消</button>
+    <button class="btn danger" id="confirmOk">删除</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
