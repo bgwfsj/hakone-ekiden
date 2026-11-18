@@ -1,0 +1,67 @@
+强风吹拂2 诊断日志
+版本: v1.0.15 (code 16)
+Android: 16 (SDK 36)
+设备: Xiaomi 2211133C
+导出时间: 2026-11-18 18:12:11
+
+---- 日志 ----
+2026-11-18 17:48:31 [app] 启动 v1.0.13 (code 14)
+2026-11-18 17:48:35 [update] 已是最新版本 v1.0.13
+2026-11-18 17:54:26 [update] 发现新版本 v1.0.14（当前 v1.0.13）
+2026-11-18 17:54:40 [update] 下载完成，准备安装
+2026-11-18 17:54:40 [crash] java.lang.IllegalArgumentException: Invalid notification (no valid small icon): Notification(channel=update shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=0 color=0x00000000 vis=PRIVATE focusType=null)
+    at android.app.NotificationManager.fixNotification(NotificationManager.java:932)
+    at android.app.NotificationManager.notifyAsUser(NotificationManager.java:823)
+    at android.app.NotificationManager.notify(NotificationManager.java:750)
+    at android.app.NotificationManager.notify(NotificationManager.java:726)
+    at com.yingzi.hakone.Updater.progressDone(Updater.java:410)
+    at com.yingzi.hakone.Updater.-$$Nest$mprogressDone(Unknown Source:0)
+    at com.yingzi.hakone.Updater$3.run(Updater.java:338)
+    at java.lang.Thread.run(Thread.java:1119)
+
+2026-11-18 18:00:36 [app] 启动 v1.0.13 (code 14)
+2026-11-18 18:00:40 [update] 发现新版本 v1.0.15（当前 v1.0.13）
+2026-11-18 18:00:40 [update] 发现新版本 v1.0.15（当前 v1.0.13）
+2026-11-18 18:00:45 [update] 下载完成，准备安装
+2026-11-18 18:00:45 [crash] java.lang.IllegalArgumentException: Invalid notification (no valid small icon): Notification(channel=update shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=0 color=0x00000000 vis=PRIVATE focusType=null)
+    at android.app.NotificationManager.fixNotification(NotificationManager.java:932)
+    at android.app.NotificationManager.notifyAsUser(NotificationManager.java:823)
+    at android.app.NotificationManager.notify(NotificationManager.java:750)
+    at android.app.NotificationManager.notify(NotificationManager.java:726)
+    at com.yingzi.hakone.Updater.progressDone(Updater.java:410)
+    at com.yingzi.hakone.Updater.-$$Nest$mprogressDone(Unknown Source:0)
+    at com.yingzi.hakone.Updater$3.run(Updater.java:338)
+    at java.lang.Thread.run(Thread.java:1119)
+
+2026-11-18 18:01:09 [app] 启动 v1.0.13 (code 14)
+2026-11-18 18:01:11 [update] 发现新版本 v1.0.15（当前 v1.0.13）
+2026-11-18 18:01:18 [update] 下载完成，准备安装
+2026-11-18 18:01:18 [crash] java.lang.IllegalArgumentException: Invalid notification (no valid small icon): Notification(channel=update shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=0 color=0x00000000 vis=PRIVATE focusType=null)
+    at android.app.NotificationManager.fixNotification(NotificationManager.java:932)
+    at android.app.NotificationManager.notifyAsUser(NotificationManager.java:823)
+    at android.app.NotificationManager.notify(NotificationManager.java:750)
+    at android.app.NotificationManager.notify(NotificationManager.java:726)
+    at com.yingzi.hakone.Updater.progressDone(Updater.java:410)
+    at com.yingzi.hakone.Updater.-$$Nest$mprogressDone(Unknown Source:0)
+    at com.yingzi.hakone.Updater$3.run(Updater.java:338)
+    at java.lang.Thread.run(Thread.java:1119)
+
+2026-11-18 18:01:23 [app] 启动 v1.0.13 (code 14)
+2026-11-18 18:01:27 [update] 发现新版本 v1.0.15（当前 v1.0.13）
+2026-11-18 18:02:52 [app] 启动 v1.0.15 (code 16)
+2026-11-18 18:02:57 [update] 已是最新版本 v1.0.15
+2026-11-18 18:11:47 [app] 启动 v1.0.15 (code 16)
+2026-11-18 18:11:51 [update] 发现新版本 v1.0.16（当前 v1.0.15）
+2026-11-18 18:12:00 [update] 下载完成，准备安装 okUrl=https://github.com/bgwfsj/hakone-ekiden/releases/download/v1.0.16/bu-1.0.16.apk
+2026-11-18 18:12:00 [crash] java.lang.IllegalArgumentException: Invalid notification (no valid small icon): Notification(channel=update shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=0 color=0x00000000 vis=PRIVATE focusType=null)
+    at android.app.NotificationManager.fixNotification(NotificationManager.java:932)
+    at android.app.NotificationManager.notifyAsUser(NotificationManager.java:823)
+    at android.app.NotificationManager.notify(NotificationManager.java:750)
+    at android.app.NotificationManager.notify(NotificationManager.java:726)
+    at com.yingzi.hakone.Updater.progressDone(Updater.java:413)
+    at com.yingzi.hakone.Updater.-$$Nest$mprogressDone(Unknown Source:0)
+    at com.yingzi.hakone.Updater$3.run(Updater.java:341)
+    at java.lang.Thread.run(Thread.java:1119)
+
+2026-11-18 18:12:03 [app] 启动 v1.0.15 (code 16)
+2026-11-18 18:12:06 [update] 发现新版本 v1.0.16（当前 v1.0.15）

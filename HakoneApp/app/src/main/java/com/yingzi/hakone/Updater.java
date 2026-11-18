@@ -350,7 +350,7 @@ public class Updater {
                     return;
                 }
                 Diagnostics.log(activity, "update", "下载完成，准备安装 okUrl=" + okUrl);
-                progressDone("下载完成，准备安装…");
+                progressDone("v" + info.version + " 下载完成，准备安装…");
                 final File fapk = apk;
                 activity.runOnUiThread(new Runnable() {
                     @Override
