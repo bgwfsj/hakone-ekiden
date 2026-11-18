@@ -67,12 +67,14 @@ public class Updater {
         String apiAssetUrl;
         String browserUrl;
         String mirrorUrl;
+        String mirrorUrl2;
         String sha256;
-        UpdateInfo(String version, String apiAssetUrl, String browserUrl, String mirrorUrl, String sha256) {
+        UpdateInfo(String version, String apiAssetUrl, String browserUrl, String mirrorUrl, String mirrorUrl2, String sha256) {
             this.version = version;
             this.apiAssetUrl = apiAssetUrl;
             this.browserUrl = browserUrl;
             this.mirrorUrl = mirrorUrl;
+            this.mirrorUrl2 = mirrorUrl2;
             this.sha256 = sha256;
         }
     }
@@ -107,14 +109,32 @@ public class Updater {
         // 1) GitHub API 直连
         UpdateInfo info = tryApi("https://api.github.com/repos/" + OWNER + "/" + REPO + "/releases/latest");
         if (info != null) return info;
+        Diagnostics.log(activity, "update", "通道1失败: api.github.com");
 
         // 2) GitHub 网页接口兜底（没有 API 配额限制）
         info = tryWeb("https://github.com/" + OWNER + "/" + REPO + "/releases/latest");
         if (info != null) return info;
+        Diagnostics.log(activity, "update", "通道2失败: github.com");
 
-        // 3) 加速镜像兜底（gh-proxy.com）：直连被限流/阻断时走这里
+        // 3) jsDelivr CDN 清单兜底（国内友好，不依赖 GitHub 域名；cb 破缓存）
+        info = tryManifest("https://cdn.jsdelivr.net/gh/" + OWNER + "/" + REPO + "@main/release/latest.json?cb=" + (System.currentTimeMillis() / 1000));
+        if (info != null) return info;
+        Diagnostics.log(activity, "update", "通道3失败: cdn.jsdelivr.net");
+
+        // 4) raw.githubusercontent 清单兜底
+        info = tryManifest("https://raw.githubusercontent.com/" + OWNER + "/" + REPO + "/main/release/latest.json");
+        if (info != null) return info;
+        Diagnostics.log(activity, "update", "通道4失败: raw.githubusercontent.com");
+
+        // 5) 加速镜像 API 兜底（gh-proxy.com）：直连被限流/阻断时走这里
         info = tryApi(MIRROR + "https://api.github.com/repos/" + OWNER + "/" + REPO + "/releases/latest");
         if (info != null) return info;
+        Diagnostics.log(activity, "update", "通道5失败: gh-proxy api");
+
+        // 6) 加速镜像 raw 清单兜底
+        info = tryManifest(MIRROR + "https://raw.githubusercontent.com/" + OWNER + "/" + REPO + "/main/release/latest.json");
+        if (info != null) return info;
+        Diagnostics.log(activity, "update", "通道6失败: gh-proxy raw");
 
         return null;
     }
@@ -135,7 +155,7 @@ public class Updater {
                             String sha = digest.startsWith("sha256:") ? digest.substring(7) : null;
                             String dl = a.optString("browser_download_url", null);
                             return new UpdateInfo(version, a.optString("url", null), dl,
-                                    dl != null ? MIRROR + dl : null, sha);
+                                    dl != null ? MIRROR + dl : null, null, sha);
                         }
                     }
                 }
@@ -158,12 +178,29 @@ public class Updater {
                         String file = href.substring(href.lastIndexOf('/') + 1);
                         String dl = "https://github.com/" + OWNER + "/" + REPO + "/releases/download/" + tag + "/" + file;
                         String version = tag.startsWith("v") ? tag.substring(1) : tag;
-                        return new UpdateInfo(version, null, dl, MIRROR + dl, null);
+                        return new UpdateInfo(version, null, dl, MIRROR + dl, null, null);
                     }
                 }
             }
         } catch (Exception ignored) { }
         return null;
+    }
+
+    /** 从仓库内 release/latest.json 清单读取版本信息（jsDelivr/raw 等国内友好通道） */
+    private UpdateInfo tryManifest(String urlStr) {
+        try {
+            JSONObject m = getJson(urlStr);
+            if (m == null) return null;
+            String version = m.optString("version", "");
+            String apk = m.optString("apk", "");
+            String sha = m.optString("sha256", "");
+            if (version.isEmpty() || apk.isEmpty()) return null;
+            String jsd = "https://cdn.jsdelivr.net/gh/" + OWNER + "/" + REPO + "@main/release/" + apk;
+            String raw = "https://raw.githubusercontent.com/" + OWNER + "/" + REPO + "/main/release/" + apk;
+            return new UpdateInfo(version, null, jsd, raw, MIRROR + raw, sha);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private JSONObject getJson(String urlStr) {
@@ -284,6 +321,12 @@ public class Updater {
                     notifyPage("直连不畅，切换镜像通道下载…");
                     apk.delete();
                     r = downloadFrom(info.mirrorUrl, apk, info.sha256, false);
+                }
+                // 3) 再失败 -> 备用通道兜底
+                if (r != 200 && info.mirrorUrl2 != null) {
+                    notifyPage("镜像不畅，切换备用通道下载…");
+                    apk.delete();
+                    r = downloadFrom(info.mirrorUrl2, apk, info.sha256, false);
                 }
                 if (r != 200) {
                     Diagnostics.log(activity, "update", "下载失败 r=" + r);
