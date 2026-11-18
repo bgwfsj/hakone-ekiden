@@ -29,8 +29,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.0.6';
+var APP_VERSION = '1.0.7';
 var APP_CHANGELOG = [
+  'v1.0.7 · 新增数据导入导出（JSON）；左上角改名「你喜欢跑步吗？」；目标进度不再归零，慢跑也有积累；日历详情显示每次达成；日历新增本月次数/距离/时长',
   'v1.0.6 · 应用名改为「强风吹拂2」',
   'v1.0.5 · 桌面图标加柔和粉色底色，深色桌面下更清晰',
   'v1.0.4 · 桌面图标改为透明底跑者剪影（完整保留两条腿）',
@@ -55,6 +56,76 @@ function load(){
 }
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(records)); }catch(e){}
+}
+
+/* ---------- 数据导入导出 ---------- */
+function exportPayload(){
+  return JSON.stringify({
+    app: 'hakone-ekiden',
+    version: APP_VERSION,
+    exportedAt: new Date().toISOString(),
+    records: records
+  });
+}
+function exportFileName(){
+  var d = new Date();
+  return '强风吹拂2-存档-' + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
+}
+function normalizeRec(r, seen){
+  if(!r || typeof r !== 'object') return null;
+  var dist = Number(r.distance);
+  var dur = Number(r.dur);
+  if(!isFinite(dist) || dist <= 0 || !isFinite(dur) || dur <= 0) return null;
+  var ts = Number(r.ts);
+  if(!isFinite(ts) || ts <= 0) ts = Date.now();
+  var id = (typeof r.id === 'string' && r.id) ? r.id : uid();
+  if(seen[id]) return null; // 已有相同 id，跳过
+  seen[id] = true;
+  var d = new Date(ts);
+  return {
+    id: id,
+    ts: ts,
+    date: (typeof r.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.date)) ? r.date : fmtDate(d),
+    distance: Math.round(dist*100)/100,
+    dur: Math.round(dur),
+    note: (typeof r.note === 'string') ? r.note.slice(0, 100) : ''
+  };
+}
+function parseImport(jsonStr){
+  var obj;
+  try{ obj = JSON.parse(jsonStr); }catch(e){ return null; }
+  var arr = (obj && Array.isArray(obj.records)) ? obj.records : (Array.isArray(obj) ? obj : null);
+  if(!arr) return null;
+  var seen = {};
+  records.forEach(function(r){ if(r && r.id) seen[r.id] = true; });
+  var out = [];
+  arr.forEach(function(r){
+    var n = normalizeRec(r, seen);
+    if(n) out.push(n);
+  });
+  return out;
+}
+function doImportJson(jsonStr){
+  if(typeof jsonStr !== 'string'){ toast('导入失败：内容无效'); return; }
+  var added = parseImport(jsonStr);
+  if(!added){ toast('导入失败：不是有效的存档 JSON'); return; }
+  if(!added.length){ toast('没有新记录可导入'); return; }
+  records = records.concat(added);
+  save();
+  refreshAll();
+  toast('已导入 ' + added.length + ' 条记录');
+}
+function exportInBrowser(){
+  var blob = new Blob([exportPayload()], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = exportFileName();
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+  toast('已导出 JSON');
 }
 function uid(){
   return Date.now().toString(36) + Math.random().toString(36).slice(2,6);
@@ -125,15 +196,21 @@ function paceScoreOf(paceSec){
   return (PACE_FLOOR - paceSec) / (PACE_FLOOR - GOAL_PACE);
 }
 
-// 单次含金量 = 距离达成 × 配速达成；综合进度取历史最佳
+// 单次含金量 = 距离达成 × (50% + 50%×配速达成)；乘法不归零，慢跑也有积累
+function proofOf(r){
+  if(!r || !r.distance || !r.dur) return 0;
+  var distDone = Math.min(1, r.distance / GOAL_KM);
+  var pace = r.dur / r.distance;
+  return distDone * (0.5 + 0.5 * paceScoreOf(pace));
+}
+
+// 综合进度取历史最佳单次
 function bestProof(){
   var best = null;
   records.forEach(function(r){
     if(!r.distance || !r.dur) return;
-    var distDone = Math.min(1, r.distance / GOAL_KM);
-    var pace = r.dur / r.distance;
-    var pct = distDone * paceScoreOf(pace);
-    if(!best || pct > best.pct) best = { dist:r.distance, pace:pace, pct:pct, date:r.date };
+    var pct = proofOf(r);
+    if(!best || pct > best.pct) best = { dist:r.distance, pace:r.dur/r.distance, pct:pct, date:r.date };
   });
   return best;
 }
@@ -148,7 +225,7 @@ function renderGoal(){
   var last = null;
   records.forEach(function(r){ if(!last || r.ts > last.ts) last = r; });
   if(last && last.distance && last.dur){
-    var lastPct = Math.min(1, last.distance/GOAL_KM) * paceScoreOf(last.dur/last.distance);
+    var lastPct = proofOf(last);
     $('goalLastBar').style.width = (lastPct*100) + '%';
     $('goalLastVal').textContent = Math.round(lastPct*100) + '%';
   }else{
@@ -178,6 +255,17 @@ function renderCal(){
   $('calTitle').textContent = y + ' · ' + (m+1) + '月';
   var now = new Date();
   $('calToday').classList.toggle('show', y !== now.getFullYear() || m !== now.getMonth());
+
+  var mCnt = 0, mDist = 0, mDur = 0;
+  records.forEach(function(r){
+    var d = new Date(r.ts);
+    if(d.getFullYear() === y && d.getMonth() === m){
+      mCnt++; mDist += r.distance; mDur += r.dur;
+    }
+  });
+  $('mCount').textContent = mCnt;
+  $('mDist').innerHTML = mDist.toFixed(2) + '<small>km</small>';
+  $('mTime').textContent = fmtTotalDur(mDur);
 
   var first = new Date(y, m, 1);
   var dim = new Date(y, m+1, 0).getDate();
@@ -335,7 +423,7 @@ function openDetail(date){
     main.className = 'run-main';
     var meta = document.createElement('div');
     meta.className = 'run-meta';
-    meta.textContent = r.distance.toFixed(2) + ' km · ' + fmtDuration(r.dur) + ' · ' + fmtPace(r.dur/r.distance);
+    meta.textContent = r.distance.toFixed(2) + ' km · ' + fmtDuration(r.dur) + ' · ' + fmtPace(r.dur/r.distance) + ' · 达成 ' + Math.round(proofOf(r)*100) + '%';
     main.appendChild(meta);
     if(r.note){
       var n = document.createElement('div');
@@ -431,7 +519,13 @@ function callNative(name, arg){
 
 window.Hakone = {
   getData: function(){
-    return { json: JSON.stringify({ records: records, savedAt: new Date().toISOString(), app: 'hakone-ekiden' }) };
+    return { json: exportPayload() };
+  },
+  exportJson: function(){
+    return { json: exportPayload() };
+  },
+  importData: function(json){
+    doImportJson(json);
   },
   notify: function(msg){ toast(msg); },
   onNativeReady: function(){
@@ -460,6 +554,25 @@ bind('menuBtn', 'click', function(){ openSheet($('menuSheet')); });
 bind('menuClose', 'click', closeSheets);
 bind('menuCheckUpdate', 'click', function(){ closeSheets(); callNative('checkUpdate'); });
 bind('menuBackup', 'click', function(){ closeSheets(); callNative('backupNow'); });
+bind('menuExport', 'click', function(){
+  closeSheets();
+  if(window.AppNative && typeof window.AppNative.exportData === 'function') window.AppNative.exportData();
+  else exportInBrowser();
+});
+bind('menuImport', 'click', function(){
+  closeSheets();
+  if(window.AppNative && typeof window.AppNative.importData === 'function') window.AppNative.importData();
+  else $('importFile').click();
+});
+bind('importFile', 'change', function(){
+  var f = this.files && this.files[0];
+  if(!f) return;
+  var reader = new FileReader();
+  reader.onload = function(){ doImportJson(String(reader.result)); };
+  reader.onerror = function(){ toast('读取文件失败'); };
+  reader.readAsText(f);
+  this.value = '';
+});
 bind('menuAbout', 'click', function(){ closeSheets(); renderAbout(); openSheet($('aboutSheet')); });
 bind('aboutClose', 'click', closeSheets);
 bind('aboutDone', 'click', closeSheets);

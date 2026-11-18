@@ -64,6 +64,9 @@ async function main(){
   const q = await ev("document.querySelector('#quoteText').textContent");
   console.log('名言: ' + q);
   if (!q || !q.startsWith('“')) throw new Error('名言未渲染');
+  const brandTxt = await ev("document.querySelector('.brand').textContent");
+  console.log('左上角品牌: ' + brandTxt);
+  if (brandTxt !== '你喜欢跑步吗？') throw new Error('左上角品牌应为「你喜欢跑步吗？」');
   const noRefresh = await ev("document.getElementById('quoteRefresh') === null");
   console.log('名言无刷新按钮: ' + noRefresh);
   if (!noRefresh) throw new Error('每日名言不应有刷新按钮');
@@ -105,7 +108,7 @@ async function main(){
   console.log('含金量=' + goalPct + ' | ' + goalBest + ' | ' + goalPred + ' | ' + goalPoem);
   const goalLast1 = await ev("document.querySelector('#goalLastVal').textContent");
   console.log('上一次含金量: ' + goalLast1);
-  if (goalLast1 !== '31%') throw new Error('上一次应为 31%, 实际 ' + goalLast1);
+  if (goalLast1 !== '33%') throw new Error('上一次应为 33%, 实际 ' + goalLast1);
   if (cnt !== '4') throw new Error('次数应为 4, 实际 ' + cnt);
   if (dist !== '18.82km') throw new Error('总距离应为 18.82km, 实际 ' + dist);
   if (goalPct !== '61%') throw new Error('最佳含金量应为 61%, 实际 ' + goalPct);
@@ -114,6 +117,13 @@ async function main(){
   const has = await ev("document.querySelectorAll('.cal-grid .day.has').length");
   console.log('本月跑步标记数: ' + has);
   if (has !== 2) throw new Error('本月应有 2 个蓝点(今天+前天), 实际 ' + has);
+  const mCnt = await ev("document.querySelector('#mCount').textContent");
+  const mDist = await ev("document.querySelector('#mDist').textContent");
+  const mTime = await ev("document.querySelector('#mTime').textContent");
+  console.log('本月统计: ' + mCnt + ' 次 / ' + mDist + ' / ' + mTime);
+  if (mCnt !== '3') throw new Error('本月次数应为 3, 实际 ' + mCnt);
+  if (mDist !== '14.62km') throw new Error('本月距离应为 14.62km, 实际 ' + mDist);
+  if (mTime !== '1:28') throw new Error('本月时长应为 1:28, 实际 ' + mTime);
   await shot('1_home');
 
   console.log('--- 验证 1km@6分 含金量低(10%)，不改变最佳 ---');
@@ -151,15 +161,19 @@ async function main(){
   const menuVer = await ev("document.getElementById('menuVer').textContent");
   console.log('菜单打开: ' + menuOpen + ' 版本: ' + menuVer);
   if (!menuOpen) throw new Error('菜单未打开');
-  if (menuVer !== '版本 v1.0.6') throw new Error('菜单版本号错误: ' + menuVer);
+  if (menuVer !== '版本 v1.0.7') throw new Error('菜单版本号错误: ' + menuVer);
+  const hasExport = await ev("document.getElementById('menuExport') !== null");
+  const hasImport = await ev("document.getElementById('menuImport') !== null");
+  console.log('菜单含导出/导入: ' + hasExport + '/' + hasImport);
+  if (!hasExport || !hasImport) throw new Error('菜单缺少导出/导入项');
   await ev("document.getElementById('menuAbout').click()");
   const aboutOpen = await ev("document.getElementById('aboutSheet').classList.contains('open')");
   const aboutVer = await ev("document.getElementById('aboutVer').textContent");
   const clCount = await ev("document.querySelectorAll('#changelog li').length");
   console.log('关于打开: ' + aboutOpen + ' 版本: ' + aboutVer + ' 更新记录: ' + clCount);
   if (!aboutOpen) throw new Error('关于未打开');
-  if (aboutVer !== 'v1.0.6') throw new Error('关于版本号错误: ' + aboutVer);
-  if (clCount !== 7) throw new Error('更新记录应为 7 条');
+  if (aboutVer !== 'v1.0.7') throw new Error('关于版本号错误: ' + aboutVer);
+  if (clCount !== 8) throw new Error('更新记录应为 7 条');
   await ev("document.getElementById('aboutDone').click()");
   await ev("document.getElementById('menuBtn').click()");
   await ev("document.getElementById('menuCheckUpdate').click()");
@@ -214,6 +228,9 @@ async function main(){
   console.log('详情打开: ' + dOpen + ' 标题: ' + dTitle + ' 记录数: ' + rows);
   if (!dOpen) throw new Error('详情弹层未打开');
   if (rows !== 3) throw new Error('今天应有 3 条记录(2原+1新), 实际 ' + rows);
+  const metaHas = await ev("document.querySelector('#detailList .run-meta').textContent.includes('达成')");
+  console.log('详情行含达成进度: ' + metaHas);
+  if (!metaHas) throw new Error('详情行应显示达成进度');
   await shot('3_detail');
 
   console.log('--- 删除一条 ---');
@@ -248,6 +265,11 @@ async function main(){
   await ev("document.getElementById('calPrev').click()");
   const calTitle = await ev("document.getElementById('calTitle').textContent");
   console.log('上一月标题: ' + calTitle);
+  const pCnt = await ev("document.querySelector('#mCount').textContent");
+  const pDist = await ev("document.querySelector('#mDist').textContent");
+  const pTime = await ev("document.querySelector('#mTime').textContent");
+  console.log('上月统计: ' + pCnt + ' 次 / ' + pDist + ' / ' + pTime);
+  if (pCnt !== '1' || pDist !== '4.20km' || pTime !== '25:00') throw new Error('上月统计应为 1/4.20km/25:00, 实际 ' + pCnt + '/' + pDist + '/' + pTime);
   const todayNav = await ev("document.getElementById('calToday').classList.contains('show')");
   console.log('“今”按钮出现: ' + todayNav);
   await ev("document.getElementById('calToday').click()");
@@ -256,6 +278,64 @@ async function main(){
   const expect = now.getFullYear() + ' · ' + (now.getMonth()+1) + '月';
   console.log('回到本月: ' + backTitle);
   if (backTitle !== expect) throw new Error('“今”按钮应回到本月');
+
+  console.log('--- 数据导入导出 ---');
+  const exp = await ev(`(function(){
+    const r = window.Hakone.exportJson();
+    const o = JSON.parse(r.json);
+    return JSON.stringify({ app: o.app, n: o.records.length, ids: o.records.map(x=>x.id).sort().join(',') });
+  })()`);
+  console.log('导出内容: ' + exp);
+  const eo = JSON.parse(exp);
+  if (eo.app !== 'hakone-ekiden') throw new Error('导出缺少 app 标识');
+  if (eo.n !== 5) throw new Error('导出应含 5 条记录, 实际 ' + eo.n);
+
+  const imp1 = await ev(`(function(){
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate()-3, 7, 30, 0);
+    const payload = { app:'hakone-ekiden', records:[
+      { id:'imp-new', ts:d.getTime(), date: d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'), distance:8.8, dur:52*60+48, note:'导入测试' },
+      { id:'q1', ts:0, distance:9.9, dur:3600 }
+    ]};
+    window.Hakone.importData(JSON.stringify(payload));
+    const recs = JSON.parse(localStorage.getItem('hakone_records_v1'));
+    return JSON.stringify({ n: recs.length, hasNew: recs.some(x=>x.id==='imp-new'), dupCount: recs.filter(x=>x.id==='q1').length, note: recs.find(x=>x.id==='imp-new').note });
+  })()`);
+  console.log('导入结果: ' + imp1);
+  const io = JSON.parse(imp1);
+  if (io.n !== 6) throw new Error('导入后应 6 条, 实际 ' + io.n);
+  if (!io.hasNew) throw new Error('新记录未导入');
+  if (io.dupCount !== 1) throw new Error('重复 id 应去重');
+  if (io.note !== '导入测试') throw new Error('note 未保留');
+  const toastImp = await ev("document.getElementById('toast').textContent");
+  console.log('导入 toast: ' + toastImp);
+  if (!toastImp.includes('已导入 1')) throw new Error('导入 toast 应为「已导入 1 条记录」');
+
+  await ev("window.Hakone.importData('not-json')");
+  const toastBad = await ev("document.getElementById('toast').textContent");
+  console.log('坏文件 toast: ' + toastBad);
+  if (!toastBad.includes('导入失败')) throw new Error('坏 JSON 应提示导入失败');
+
+  await ev("window.Hakone.importData('[]')");
+  const toastEmpty = await ev("document.getElementById('toast').textContent");
+  console.log('空导入 toast: ' + toastEmpty);
+  if (!toastEmpty.includes('没有新记录')) throw new Error('空数组应提示无新记录');
+
+  console.log('--- 慢跑不归零：3km@30分 → 15% ---');
+  await ev(`(function(){
+    const recs = JSON.parse(localStorage.getItem('hakone_records_v1'));
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 22, 30, 0);
+    recs.push({ id:'qslow', ts:d.getTime(),
+      date: d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),
+      distance:3, dur:1800, note:'' });
+    localStorage.setItem('hakone_records_v1', JSON.stringify(recs));
+    location.reload();
+  })()`);
+  await sleep(1200);
+  const lastSlow = await ev("document.querySelector('#goalLastVal').textContent");
+  console.log('慢跑后上一次: ' + lastSlow);
+  if (lastSlow !== '15%') throw new Error('3km@30分 应 15%(不归零), 实际 ' + lastSlow);
 
   console.log('--- 无横向溢出复检 ---');
   const overflow2 = await ev("document.documentElement.scrollWidth <= window.innerWidth");

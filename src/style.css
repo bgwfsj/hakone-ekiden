@@ -143,6 +143,10 @@ body{
 .avg{text-align:center;font-size:11px;color:var(--sub);margin:-4px 0 14px;letter-spacing:.06em;}
 
 /* ---------- 日历 ---------- */
+.cal-stats{display:flex;padding:16px 4px 14px;border-top:1px solid var(--line-soft);margin-bottom:14px;}
+.cal-stats .stat .num{font-size:clamp(18px,5.5vw,24px);}
+.cal-stats .stat .num small{font-size:10px;}
+.cal-stats .stat .lbl{margin-top:5px;font-size:10.5px;letter-spacing:.14em;}
 .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .cal-title{font-size:14px;font-weight:600;letter-spacing:.06em;}
 .cal-nav{display:flex;gap:6px;}

@@ -12,7 +12,7 @@
 
   <header class="topbar">
     <span class="dot" aria-hidden="true"></span>
-    <span class="brand">强风吹拂2</span>
+    <span class="brand">你喜欢跑步吗？</span>
     <button class="menu-btn" id="menuBtn" aria-label="菜单">&#8230;</button>
   </header>
 
@@ -75,12 +75,17 @@
         <button class="nav" id="calNext" aria-label="下一月">&#8250;</button>
       </div>
     </div>
+    <div class="cal-stats">
+      <div class="stat"><div class="num mono" id="mCount">0</div><div class="lbl">本月次数</div></div>
+      <div class="stat"><div class="num mono" id="mDist">0.00<small>km</small></div><div class="lbl">本月距离</div></div>
+      <div class="stat"><div class="num mono" id="mTime">0:00</div><div class="lbl">本月时长</div></div>
+    </div>
     <div class="cal-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
     <div class="cal-grid" id="calGrid"></div>
     <p class="cal-hint">蓝色圆点 &middot; 跑步的日子</p>
   </section>
 
-  <footer class="foot">强风吹拂2 &middot; 从 0 到 10 km</footer>
+  <footer class="foot">从 0 到 10 km</footer>
 </div>
 
 <div class="overlay" id="overlay"></div>
@@ -162,7 +167,7 @@
   <div class="sheet-body info-body">
     <div class="info-item">
       <div class="info-k">单次含金量</div>
-      <div class="info-v">距离达成 &times; 配速达成</div>
+      <div class="info-v">距离达成 &times; (50% + 50% &times; 配速达成)</div>
     </div>
     <div class="info-item">
       <div class="info-k">距离达成</div>
@@ -170,7 +175,7 @@
     </div>
     <div class="info-item">
       <div class="info-k">配速达成</div>
-      <div class="info-v">6&#39;00&quot; 记 100%，8&#39;00&quot; 记 0%，每快 30 秒约 +25%</div>
+      <div class="info-v">6&#39;00&quot; 记 100%，8&#39;00&quot; 记 0%，中间线性</div>
     </div>
     <div class="info-item">
       <div class="info-k">综合进度</div>
@@ -184,7 +189,7 @@
       <div class="info-k">达成条件</div>
       <div class="info-v">出现一次 &ge;10 km 且配速 &le;6&#39;00&quot; 的记录</div>
     </div>
-    <p class="info-eg mono">例：9 km @ 6&#39;00&quot; &rarr; 90% &times; 100% = 90%</p>
+    <p class="info-eg mono">例：9 km @ 6&#39;00&quot; &rarr; 90% &times; 100% = 90%<br>慢跑也有积累：3 km @ 10&#39;00&quot; &rarr; 30% &times; 50% = 15%</p>
   </div>
   <div class="sheet-foot">
     <button class="btn ghost" id="infoDone">知道啦</button>
@@ -203,6 +208,8 @@
   <div class="menu-list">
     <button class="menu-item" id="menuCheckUpdate"><span>检查更新</span><span class="arrow">&#8250;</span></button>
     <button class="menu-item" id="menuBackup"><span>备份存档</span><span class="arrow">&#8250;</span></button>
+    <button class="menu-item" id="menuExport"><span>导出数据（JSON）</span><span class="arrow">&#8250;</span></button>
+    <button class="menu-item" id="menuImport"><span>导入数据（JSON）</span><span class="arrow">&#8250;</span></button>
     <button class="menu-item" id="menuAbout"><span>关于与更新记录</span><span class="arrow">&#8250;</span></button>
   </div>
 </div>
@@ -240,6 +247,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<input type="file" id="importFile" accept="application/json,.json,text/plain" style="display:none">
 
 <script src="app.js"></script>
 </body>
