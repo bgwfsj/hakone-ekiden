@@ -64,6 +64,9 @@ async function main(){
   const q = await ev("document.querySelector('#quoteText').textContent");
   console.log('名言: ' + q);
   if (!q || !q.startsWith('“')) throw new Error('名言未渲染');
+  const eggInit = await ev("!document.getElementById('egg').classList.contains('open')");
+  console.log('空状态无彩蛋: ' + eggInit);
+  if (!eggInit) throw new Error('空状态不应有彩蛋');
   const brandTxt = await ev("document.querySelector('.brand').textContent");
   console.log('左上角品牌: ' + brandTxt);
   if (brandTxt !== '你喜欢跑步吗？') throw new Error('左上角品牌应为「你喜欢跑步吗？」');
@@ -76,6 +79,16 @@ async function main(){
   if (goalPct0 !== '0%') throw new Error('空状态含金量应为 0%');
   const overflow = await ev("document.documentElement.scrollWidth <= window.innerWidth");
   console.log('无横向溢出: ' + overflow);
+
+  console.log('--- 空状态日历跳转 ---');
+  await ev("document.getElementById('calTitle').click()");
+  const jumpOpen0 = await ev("document.getElementById('jumpSheet').classList.contains('open')");
+  const jumpHint = await ev("document.querySelector('#jumpList').textContent");
+  console.log('跳转弹层: ' + jumpOpen0 + ' 提示: ' + jumpHint.trim());
+  if (!jumpOpen0) throw new Error('空状态点标题应打开跳转弹层');
+  await ev("document.getElementById('jumpClose').click()");
+  const jumpClosed0 = await ev("!document.getElementById('jumpSheet').classList.contains('open')");
+  if (!jumpClosed0) throw new Error('跳转弹层应能关闭');
 
   console.log('--- 注入示例数据(今天x2 / 前天x1 / 上月x1) ---');
   await ev(`(function(){
@@ -124,7 +137,32 @@ async function main(){
   if (mCnt !== '3') throw new Error('本月次数应为 3, 实际 ' + mCnt);
   if (mDist !== '14.62km') throw new Error('本月距离应为 14.62km, 实际 ' + mDist);
   if (mTime !== '1:28') throw new Error('本月时长应为 1:28, 实际 ' + mTime);
+  const bestD = await ev("document.querySelector('#bestDist').textContent");
+  const bestP = await ev("document.querySelector('#bestPace').textContent");
+  console.log('最长距离: ' + bestD + ' | 最快配速: ' + bestP);
+  const Q = String.fromCharCode(34);
+  const expD = '6.10 km · 11月16日 · 5\'59' + Q;
+  const expP = '5\'57' + Q + ' · 10月19日 · 4.20 km';
+  if (bestD !== expD) throw new Error('最长距离错误: ' + bestD + '，应为 ' + expD);
+  if (bestP !== expP) throw new Error('最快配速错误: ' + bestP + '，应为 ' + expP);
   await shot('1_home');
+
+  console.log('--- 彩蛋：首次 5km / 配速进6 / 累计10km ---');
+  const eggOpen = await ev("document.getElementById('egg').classList.contains('open')");
+  const eggT1 = await ev("document.getElementById('eggTitle').textContent");
+  console.log('彩蛋弹出: ' + eggOpen + ' 标题: ' + eggT1);
+  if (!eggOpen) throw new Error('首次 5km 应弹出彩蛋');
+  if (eggT1 !== '5 公里达成') throw new Error('第一个彩蛋应为「5 公里达成」, 实际 ' + eggT1);
+  await ev("document.getElementById('eggOk').click()");
+  const eggT2 = await ev("document.getElementById('eggTitle').textContent");
+  if (eggT2 !== '配速进 6') throw new Error('第二个彩蛋应为「配速进 6」, 实际 ' + eggT2);
+  await ev("document.getElementById('eggOk').click()");
+  const eggT3 = await ev("document.getElementById('eggTitle').textContent");
+  if (eggT3 !== '累计 10 公里') throw new Error('第三个彩蛋应为「累计 10 公里」, 实际 ' + eggT3);
+  await ev("document.getElementById('eggOk').click()");
+  const eggClosed = await ev("!document.getElementById('egg').classList.contains('open')");
+  console.log('彩蛋已全部收下: ' + eggClosed);
+  if (!eggClosed) throw new Error('彩蛋应全部关闭');
 
   console.log('--- 验证 1km@6分 含金量低(10%)，不改变最佳 ---');
   await ev(`(function(){
@@ -279,6 +317,27 @@ async function main(){
   console.log('回到本月: ' + backTitle);
   if (backTitle !== expect) throw new Error('“今”按钮应回到本月');
 
+  console.log('--- 日历跳转（有数据月份） ---');
+  await ev("document.getElementById('calTitle').click()");
+  const jumpOpen = await ev("document.getElementById('jumpSheet').classList.contains('open')");
+  const jumpRows = await ev("document.querySelectorAll('#jumpList .menu-item').length");
+  const jumpFirst = await ev("document.querySelector('#jumpList .menu-item').textContent");
+  console.log('跳转弹层: ' + jumpOpen + ' 月份数: ' + jumpRows + ' 第一条: ' + jumpFirst.trim());
+  if (!jumpOpen) throw new Error('跳转弹层未打开');
+  if (jumpRows !== 2) throw new Error('应有 2 个有数据的月份, 实际 ' + jumpRows);
+  if (!jumpFirst.includes('2026 · 11月')) throw new Error('第一条应为 2026 · 11月');
+  await ev(`(function(){
+    const items = document.querySelectorAll('#jumpList .menu-item');
+    for(let i=0;i<items.length;i++){ if(items[i].textContent.includes('10月')){ items[i].click(); return true; } }
+    return false;
+  })()`);
+  const jumpTitle = await ev("document.getElementById('calTitle').textContent");
+  const jumpClosed = await ev("!document.getElementById('jumpSheet').classList.contains('open')");
+  console.log('跳转到: ' + jumpTitle + ' 弹层已关: ' + jumpClosed);
+  if (jumpTitle !== '2026 · 10月') throw new Error('应跳到 2026 · 10月, 实际 ' + jumpTitle);
+  if (!jumpClosed) throw new Error('跳转后应关闭弹层');
+  await ev("document.getElementById('calToday').click()");
+
   console.log('--- 数据导入导出 ---');
   const exp = await ev(`(function(){
     const r = window.Hakone.exportJson();
@@ -336,6 +395,50 @@ async function main(){
   const lastSlow = await ev("document.querySelector('#goalLastVal').textContent");
   console.log('慢跑后上一次: ' + lastSlow);
   if (lastSlow !== '15%') throw new Error('3km@30分 应 15%(不归零), 实际 ' + lastSlow);
+
+  console.log('--- 彩蛋：首次 10km 与达成目标 ---');
+  await ev(`(function(){
+    const recs = JSON.parse(localStorage.getItem('hakone_records_v1'));
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate()-1, 6, 0, 0);
+    recs.push({ id:'qgoal', ts:d.getTime(),
+      date: d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),
+      distance:10, dur:59*60, note:'' });
+    localStorage.setItem('hakone_records_v1', JSON.stringify(recs));
+    location.reload();
+  })()`);
+  await sleep(1200);
+  const eggO2 = await ev("document.getElementById('egg').classList.contains('open')");
+  const eg1 = await ev("document.getElementById('eggTitle').textContent");
+  console.log('10km 彩蛋: ' + eggO2 + ' ' + eg1);
+  if (!eggO2 || eg1 !== '10 公里达成') throw new Error('应弹出「10 公里达成」');
+  await ev("document.getElementById('eggOk').click()");
+  const eg2 = await ev("document.getElementById('eggTitle').textContent");
+  console.log('第二个: ' + eg2);
+  if (eg2 !== '一小时十公里') throw new Error('第二个应为「一小时十公里」');
+  await ev("document.getElementById('eggOk').click()");
+  await ev("location.reload()");
+  await sleep(1200);
+  const eggAgain = await ev("!document.getElementById('egg').classList.contains('open')");
+  console.log('彩蛋不重复触发: ' + eggAgain);
+  if (!eggAgain) throw new Error('彩蛋不应重复触发');
+
+  console.log('--- 连点左上角 7 次重置彩蛋 ---');
+  await ev(`(function(){
+    const brand = document.querySelector('.brand');
+    for(let i=0;i<7;i++){ brand.click(); }
+    return true;
+  })()`);
+  const resetToast = await ev("document.getElementById('toast').textContent");
+  console.log('重置提示: ' + resetToast);
+  if (!resetToast.includes('已重置')) throw new Error('应提示彩蛋已重置');
+  await ev("location.reload()");
+  await sleep(1200);
+  const eggRe = await ev("document.getElementById('egg').classList.contains('open')");
+  const eggReTitle = await ev("document.getElementById('eggTitle').textContent");
+  console.log('重新触发: ' + eggRe + ' ' + eggReTitle);
+  if (!eggRe || eggReTitle !== '一小时十公里') throw new Error('重置后应重新触发「一小时十公里」');
+  await ev("document.getElementById('eggOk').click()");
 
   console.log('--- 无横向溢出复检 ---');
   const overflow2 = await ev("document.documentElement.scrollWidth <= window.innerWidth");

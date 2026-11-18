@@ -141,6 +141,10 @@ body{
 .stat .num small{font-size:11px;color:var(--weak);font-weight:400;margin-left:2px;}
 .stat .lbl{margin-top:6px;font-size:11px;color:var(--weak);letter-spacing:.2em;}
 .avg{text-align:center;font-size:11px;color:var(--sub);margin:-4px 0 14px;letter-spacing:.06em;}
+.best{border-top:1px solid var(--line-soft);padding:10px 2px 2px;margin-top:2px;}
+.best-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;}
+.best-k{font-size:11px;color:var(--weak);letter-spacing:.1em;white-space:nowrap;}
+.best-v{font-size:12.5px;color:var(--sub);font-variant-numeric:tabular-nums;text-align:right;}
 
 /* ---------- 日历 ---------- */
 .cal-stats{display:flex;padding:16px 4px 14px;border-top:1px solid var(--line-soft);margin-bottom:14px;}
@@ -148,8 +152,12 @@ body{
 .cal-stats .stat .num small{font-size:10px;}
 .cal-stats .stat .lbl{margin-top:5px;font-size:10.5px;letter-spacing:.14em;}
 .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.cal-title{font-size:14px;font-weight:600;letter-spacing:.06em;}
+.cal-title{font-size:14px;font-weight:600;letter-spacing:.06em;border:none;background:transparent;color:var(--ink);cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:5px;}
+.cal-title::after{content:'▾';font-size:10px;color:var(--weak);}
+.jump-item.current{color:var(--green);font-weight:600;}
+.jump-empty{font-size:12.5px;color:var(--weak);text-align:center;padding:26px 0;}
 .cal-nav{display:flex;gap:6px;}
+.nav.disabled{opacity:.35;pointer-events:none;}
 .nav{
   width:30px;height:30px;border:1px solid var(--line);
   background:#fff;border-radius:9px;color:var(--sub);
@@ -171,7 +179,7 @@ body{
 .day .mark{width:4px;height:4px;border-radius:50%;background:transparent;}
 .day.has .mark{background:var(--blue);box-shadow:0 0 6px rgba(11,142,214,.5);}
 .day:active{background:rgba(13,32,45,.04);}
-.cal-hint{margin-top:10px;text-align:center;font-size:10.5px;color:var(--weak);letter-spacing:.12em;}
+
 
 .foot{text-align:center;font-size:10.5px;color:var(--weak);letter-spacing:.2em;padding-top:8px;}
 
@@ -283,3 +291,12 @@ body{padding:6px 2px 18px;}
 @media (prefers-reduced-motion: reduce){
   *{animation:none !important;transition:none !important;}
 }
+/* 彩蛋 */
+.egg{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:rgba(13,32,45,.28);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .3s;}
+.egg.open{opacity:1;pointer-events:auto;}
+.egg-inner{width:min(320px,84vw);text-align:center;padding:36px 26px 26px;border-radius:24px;background:linear-gradient(165deg,#fff 0%,#fdf3f6 52%,#eaf6fb 100%);box-shadow:0 18px 50px rgba(13,32,45,.16),0 0 60px rgba(244,181,201,.38);transform:translateY(16px) scale(.98);transition:transform .35s ease;}
+.egg.open .egg-inner{transform:translateY(0) scale(1);}
+.egg-emoji{font-size:46px;line-height:1;margin-bottom:14px;}
+.egg-title{font-size:18px;font-weight:600;color:var(--ink);letter-spacing:.04em;}
+.egg-msg{margin:10px 0 24px;font-size:13.5px;color:var(--sub);line-height:1.7;}
+.egg-btn{width:100%;}

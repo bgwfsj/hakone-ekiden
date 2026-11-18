@@ -31,7 +31,7 @@ var quotes = [
 
 var APP_VERSION = '1.0.7';
 var APP_CHANGELOG = [
-  'v1.0.7 · 新增数据导入导出（JSON）；左上角改名「你喜欢跑步吗？」；目标进度不再归零，慢跑也有积累；日历详情显示每次达成；日历新增本月次数/距离/时长',
+  'v1.0.7 · 新增数据导入导出（JSON）；左上角改名「你喜欢跑步吗？」；目标进度不再归零，慢跑也有积累；日历详情显示每次达成；日历新增本月次数/距离/时长；翻月只跳有数据的月份',
   'v1.0.6 · 应用名改为「强风吹拂2」',
   'v1.0.5 · 桌面图标加柔和粉色底色，深色桌面下更清晰',
   'v1.0.4 · 桌面图标改为透明底跑者剪影（完整保留两条腿）',
@@ -114,6 +114,7 @@ function doImportJson(jsonStr){
   save();
   refreshAll();
   toast('已导入 ' + added.length + ' 条记录');
+  checkEggs();
 }
 function exportInBrowser(){
   var blob = new Blob([exportPayload()], {type:'application/json'});
@@ -187,6 +188,25 @@ function renderStats(){
   $('statTime').textContent = fmtTotalDur(dur);
   var pace = dist > 0 ? dur/dist : null;
   $('avgPace').textContent = '平均配速 · ' + (pace != null ? fmtPace(pace) : '—');
+
+  // 最长距离 / 最快配速（带上那次日期和配速/距离）
+  var bestD = null, bestP = null;
+  records.forEach(function(r){
+    if(!r.distance || !r.dur) return;
+    if(!bestD || r.distance > bestD.distance) bestD = r;
+    var p = r.dur / r.distance;
+    if(!bestP || p < bestP.pace) bestP = { pace:p, rec:r };
+  });
+  function dateCN(s){
+    var p = String(s).split('-');
+    return parseInt(p[1],10) + '月' + parseInt(p[2],10) + '日';
+  }
+  $('bestDist').textContent = bestD
+    ? bestD.distance.toFixed(2) + ' km · ' + dateCN(bestD.date) + ' · ' + fmtPace(bestD.dur/bestD.distance)
+    : '—';
+  $('bestPace').textContent = bestP
+    ? fmtPace(bestP.pace) + ' · ' + dateCN(bestP.rec.date) + ' · ' + bestP.rec.distance.toFixed(2) + ' km'
+    : '—';
   return { cnt:cnt, dist:dist, dur:dur };
 }
 
@@ -252,7 +272,10 @@ function renderGoal(){
 
 function renderCal(){
   var y = calCursor.getFullYear(), m = calCursor.getMonth();
+  collectDataMonths();
   $('calTitle').textContent = y + ' · ' + (m+1) + '月';
+  $('calPrev').classList.toggle('disabled', !prevDataMonth(y,m));
+  $('calNext').classList.toggle('disabled', !nextDataMonth(y,m));
   var now = new Date();
   $('calToday').classList.toggle('show', y !== now.getFullYear() || m !== now.getMonth());
 
@@ -298,10 +321,75 @@ function renderCal(){
   }
 }
 
+var dataMonths = [];
+function collectDataMonths(){
+  var set = {};
+  records.forEach(function(r){
+    var d = new Date(r.ts);
+    set[d.getFullYear() + '-' + d.getMonth()] = true;
+  });
+  dataMonths = Object.keys(set).map(function(k){
+    var p = k.split('-');
+    return { y: parseInt(p[0],10), m: parseInt(p[1],10) };
+  }).sort(function(a,b){ return (a.y-b.y) || (a.m-b.m); });
+}
+function prevDataMonth(y,m){
+  var best = null;
+  dataMonths.forEach(function(mm){
+    if(mm.y < y || (mm.y === y && mm.m < m)){
+      if(!best || mm.y > best.y || (mm.y === best.y && mm.m > best.m)) best = mm;
+    }
+  });
+  return best;
+}
+function nextDataMonth(y,m){
+  var best = null;
+  dataMonths.forEach(function(mm){
+    if(mm.y > y || (mm.y === y && mm.m > m)){
+      if(!best || mm.y < best.y || (mm.y === best.y && mm.m < best.m)) best = mm;
+    }
+  });
+  return best;
+}
+
 function refreshAll(){
   renderStats();
   renderGoal();
   renderCal();
+}
+
+/* ---------- 日历跳转 ---------- */
+function openJump(){
+  var box = $('jumpList');
+  box.innerHTML = '';
+  if(!dataMonths.length){
+    var p = document.createElement('p');
+    p.className = 'jump-empty';
+    p.textContent = '还没有跑步记录，先跑起来吧。';
+    box.appendChild(p);
+  } else {
+    var curY = calCursor.getFullYear(), curM = calCursor.getMonth();
+    var list = dataMonths.slice().reverse(); // 新的在前
+    list.forEach(function(mm){
+      var btn = document.createElement('button');
+      btn.className = 'menu-item jump-item';
+      if(mm.y === curY && mm.m === curM) btn.classList.add('current');
+      var label = document.createElement('span');
+      label.textContent = mm.y + ' · ' + (mm.m+1) + '月';
+      var arrow = document.createElement('span');
+      arrow.className = 'arrow';
+      arrow.textContent = '›';
+      btn.appendChild(label);
+      btn.appendChild(arrow);
+      btn.addEventListener('click', function(){
+        calCursor = new Date(mm.y, mm.m, 1);
+        closeSheets();
+        renderCal();
+      });
+      box.appendChild(btn);
+    });
+  }
+  openSheet($('jumpSheet'));
 }
 
 /* ---------- 弹层 ---------- */
@@ -393,6 +481,7 @@ function saveRecord(){
   save();
   closeSheets();
   refreshAll();
+  checkEggs();
   var rd = new Date(ts);
   if(rd.getFullYear() !== calCursor.getFullYear() || rd.getMonth() !== calCursor.getMonth()){
     calCursor = new Date(rd.getFullYear(), rd.getMonth(), 1);
@@ -488,8 +577,16 @@ bind('confirmCancel', 'click', closeSheets);
 bind('confirmOk', 'click', doDelete);
 bind('overlay', 'click', closeSheets);
 bind('fNow', 'click', function(){ $('fTime').value = nowLocalValue(); });
-bind('calPrev', 'click', function(){ calCursor.setMonth(calCursor.getMonth()-1); renderCal(); });
-bind('calNext', 'click', function(){ calCursor.setMonth(calCursor.getMonth()+1); renderCal(); });
+bind('calTitle', 'click', openJump);
+bind('jumpClose', 'click', closeSheets);
+bind('calPrev', 'click', function(){
+  var t = prevDataMonth(calCursor.getFullYear(), calCursor.getMonth());
+  if(t){ calCursor = new Date(t.y, t.m, 1); renderCal(); }
+});
+bind('calNext', 'click', function(){
+  var t = nextDataMonth(calCursor.getFullYear(), calCursor.getMonth());
+  if(t){ calCursor = new Date(t.y, t.m, 1); renderCal(); }
+});
 bind('calToday', 'click', function(){
   var now = new Date();
   calCursor = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -506,6 +603,76 @@ $('fSec').addEventListener('input', updatePace);
 $('fNote').addEventListener('input', function(){
   $('noteCount').textContent = $('fNote').value.length + '/100';
 });
+
+/* ---------- 彩蛋 ---------- */
+var EGG_KEY = 'hakone_eggs_v1';
+var eggTriggered = loadEggs();
+var eggQueue = [];
+var eggDefs = [
+  { id:'first_5k',    emoji:'🌸', title:'5 公里达成',      msg:'第一次跑进 5 公里，风记住了你的脚步。',    cond:function(){ return records.some(function(r){ return r.distance >= 5; }); } },
+  { id:'first_10k',   emoji:'🌊', title:'10 公里达成',     msg:'十公里！你跑过了自己设下的那扇门。',        cond:function(){ return records.some(function(r){ return r.distance >= GOAL_KM; }); } },
+  { id:'first_sub6',  emoji:'🌀', title:'配速进 6',        msg:'配速跑进 6 分，连风都追不上你。',           cond:function(){ return records.some(function(r){ return r.distance > 0 && r.dur/r.distance <= GOAL_PACE; }); } },
+  { id:'first_goal',  emoji:'🏁', title:'一小时十公里',     msg:'你做到了。',    cond:function(){ return records.some(function(r){ return r.distance >= GOAL_KM - 0.005 && r.dur/r.distance <= GOAL_PACE + 0.01; }); } },
+  { id:'total_10k',   emoji:'🌱', title:'累计 10 公里',     msg:'从 0 到 10 公里，每一步都算数。',           cond:function(){ return totalDist() >= 10; } },
+  { id:'total_100k',  emoji:'🌟', title:'累计 100 公里',    msg:'100 公里，这是十次十公里的坚持。',         cond:function(){ return totalDist() >= 100; } },
+  { id:'count_10',    emoji:'🎽', title:'第 10 次跑步',     msg:'十次了，习惯正在长成。',                    cond:function(){ return records.length >= 10; } },
+  { id:'count_100',   emoji:'🏅', title:'第 100 次跑步',    msg:'一百次，你已经是一个跑者了。',              cond:function(){ return records.length >= 100; } }
+];
+function loadEggs(){
+  try{ var a = JSON.parse(localStorage.getItem(EGG_KEY)); return Array.isArray(a) ? a : []; }catch(e){ return []; }
+}
+function saveEggs(){
+  try{ localStorage.setItem(EGG_KEY, JSON.stringify(eggTriggered)); }catch(e){}
+}
+function totalDist(){
+  var s = 0;
+  records.forEach(function(r){ s += r.distance; });
+  return s;
+}
+function checkEggs(){
+  eggDefs.forEach(function(def){
+    if(eggTriggered.indexOf(def.id) >= 0) return;
+    if(def.cond()){
+      eggTriggered.push(def.id);
+      saveEggs();
+      eggQueue.push(def);
+    }
+  });
+  if(eggQueue.length) showNextEgg();
+}
+function showNextEgg(){
+  var def = eggQueue.shift();
+  if(!def) return;
+  $('eggEmoji').textContent = def.emoji;
+  $('eggTitle').textContent = def.title;
+  $('eggMsg').textContent = def.msg;
+  $('egg').classList.add('open');
+}
+function closeEgg(){
+  $('egg').classList.remove('open');
+  if(eggQueue.length) showNextEgg();
+}
+bind('eggOk', 'click', closeEgg);
+
+// 隐藏彩蛋：连点左上角 7 次，重置「一小时十公里」
+var brandTaps = 0, brandTapTimer = null;
+function onBrandTap(){
+  brandTaps++;
+  clearTimeout(brandTapTimer);
+  brandTapTimer = setTimeout(function(){ brandTaps = 0; }, 2500);
+  if(brandTaps >= 7){
+    brandTaps = 0;
+    var i = eggTriggered.indexOf('first_goal');
+    if(i >= 0){
+      eggTriggered.splice(i, 1);
+      saveEggs();
+      toast('彩蛋已重置：🏁 一小时十公里');
+    } else {
+      toast('「一小时十公里」还没触发过哦');
+    }
+  }
+}
+document.querySelector('.brand').addEventListener('click', onBrandTap);
 
 /* ---------- 原生桥接（打包后可用；浏览器预览降级为提示） ---------- */
 function callNative(name, arg){
@@ -584,5 +751,6 @@ bind('aboutDone', 'click', closeSheets);
   $('menuVer').textContent = '版本 v' + APP_VERSION;
   renderQuote();
   refreshAll();
+  checkEggs();
 })();
 })();

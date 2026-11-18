@@ -49,18 +49,30 @@
   <button class="record-btn" id="recordBtn">&#65291; 记录一次</button>
 
   <!-- 统计 -->
-  <section class="card stats">
-    <div class="stat">
-      <div class="num mono" id="statCount">0</div>
-      <div class="lbl">次数</div>
+  <section class="card">
+    <div class="stats">
+      <div class="stat">
+        <div class="num mono" id="statCount">0</div>
+        <div class="lbl">次数</div>
+      </div>
+      <div class="stat">
+        <div class="num mono" id="statDist">0.00<small>km</small></div>
+        <div class="lbl">距离</div>
+      </div>
+      <div class="stat">
+        <div class="num mono" id="statTime">0:00</div>
+        <div class="lbl">时长</div>
+      </div>
     </div>
-    <div class="stat">
-      <div class="num mono" id="statDist">0.00<small>km</small></div>
-      <div class="lbl">距离</div>
-    </div>
-    <div class="stat">
-      <div class="num mono" id="statTime">0:00</div>
-      <div class="lbl">时长</div>
+    <div class="best">
+      <div class="best-row">
+        <span class="best-k">最长距离</span>
+        <span class="best-v mono" id="bestDist">&mdash;</span>
+      </div>
+      <div class="best-row">
+        <span class="best-k">最快配速</span>
+        <span class="best-v mono" id="bestPace">&mdash;</span>
+      </div>
     </div>
   </section>
   <p class="avg mono" id="avgPace">平均配速 · &mdash;</p>
@@ -68,7 +80,7 @@
   <!-- 日历 -->
   <section class="card cal">
     <div class="cal-head">
-      <span class="cal-title" id="calTitle"></span>
+      <button class="cal-title" id="calTitle" aria-label="跳转月份"></button>
       <div class="cal-nav">
         <button class="nav" id="calPrev" aria-label="上一月">&#8249;</button>
         <button class="nav today-nav" id="calToday">今</button>
@@ -82,7 +94,7 @@
     </div>
     <div class="cal-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
     <div class="cal-grid" id="calGrid"></div>
-    <p class="cal-hint">蓝色圆点 &middot; 跑步的日子</p>
+    
   </section>
 
   <footer class="foot">从 0 到 10 km</footer>
@@ -195,6 +207,18 @@
     <button class="btn ghost" id="infoDone">知道啦</button>
   </div>
 </div>
+<!-- 月份跳转 sheet -->
+<div class="sheet" id="jumpSheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <div>
+      <div class="sheet-title">跳转到</div>
+      <div class="sheet-sub">有跑步记录的月份</div>
+    </div>
+    <button class="sheet-close" id="jumpClose" aria-label="关闭">&#215;</button>
+  </div>
+  <div class="sheet-body" id="jumpList"></div>
+</div>
 <!-- 菜单 sheet -->
 <div class="sheet" id="menuSheet" role="dialog" aria-modal="true">
   <div class="sheet-handle"></div>
@@ -243,6 +267,16 @@
   <div class="sheet-foot">
     <button class="btn ghost" id="confirmCancel">取消</button>
     <button class="btn danger" id="confirmOk">删除</button>
+  </div>
+</div>
+
+<!-- 彩蛋 -->
+<div class="egg" id="egg" role="dialog" aria-modal="true">
+  <div class="egg-inner">
+    <div class="egg-emoji" id="eggEmoji"></div>
+    <div class="egg-title" id="eggTitle"></div>
+    <div class="egg-msg" id="eggMsg"></div>
+    <button class="btn primary egg-btn" id="eggOk">收下</button>
   </div>
 </div>
 
