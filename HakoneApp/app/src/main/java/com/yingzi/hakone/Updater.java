@@ -55,6 +55,8 @@ public class Updater {
     private final MainActivity activity;
     private final WebView web;
     private final BackupManager backupManager;
+    /** 防重复：检查/下载/安装进行中时，再触发更新直接忽略 */
+    private volatile boolean busy = false;
 
     public Updater(MainActivity activity, WebView web, BackupManager backupManager) {
         this.activity = activity;
@@ -80,6 +82,10 @@ public class Updater {
     }
 
     public void check() {
+        if (busy) {
+            notifyPage("正在下载/安装更新，请稍候");
+            return;
+        }
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -306,10 +312,16 @@ public class Updater {
     }
 
     private void downloadAndInstall(final UpdateInfo info) {
+        if (busy) {
+            notifyPage("正在下载/安装更新，请稍候");
+            return;
+        }
+        busy = true;
         new Thread(new Runnable() {
             @Override
             public void run() {
-                File dir = new File(activity.getCacheDir(), "update");
+                try {
+                    File dir = new File(activity.getCacheDir(), "update");
                 if (!dir.exists()) dir.mkdirs();
                 final File apk = new File(dir, "hakone.apk");
                 if (apk.exists()) apk.delete();
@@ -344,6 +356,9 @@ public class Updater {
                     @Override
                     public void run() { install(fapk); }
                 });
+                } finally {
+                    busy = false;
+                }
             }
         }).start();
     }
