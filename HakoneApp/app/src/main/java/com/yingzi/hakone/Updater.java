@@ -85,8 +85,8 @@ public class Updater {
             public void run() {
                 UpdateInfo info = fetchLatest();
                 if (info == null) {
-                    Diagnostics.log(activity, "update", "检查更新失败（网络或限流）");
-                    notifyPage("检查更新失败（网络或限流）");
+                    Diagnostics.log(activity, "update", "检查更新失败（所有通道均不可用）");
+                    notifyPage("检查更新失败：请检查网络后重试；也可到 GitHub Releases 手动下载最新版");
                     return;
                 }
                 String cur = BuildConfig.VERSION_NAME;
@@ -316,25 +316,28 @@ public class Updater {
                 // 1) 直连 GitHub 下载
                 String direct = info.browserUrl != null ? info.browserUrl : info.apiAssetUrl;
                 int r = downloadFrom(direct, apk, info.sha256, info.browserUrl == null);
+                String okUrl = r == 200 ? direct : null;
                 // 2) 直连失败/校验失败 -> 自动切换加速镜像
                 if (r != 200 && info.mirrorUrl != null) {
                     notifyPage("直连不畅，切换镜像通道下载…");
                     apk.delete();
                     r = downloadFrom(info.mirrorUrl, apk, info.sha256, false);
+                    if (r == 200) okUrl = info.mirrorUrl;
                 }
                 // 3) 再失败 -> 备用通道兜底
                 if (r != 200 && info.mirrorUrl2 != null) {
                     notifyPage("镜像不畅，切换备用通道下载…");
                     apk.delete();
                     r = downloadFrom(info.mirrorUrl2, apk, info.sha256, false);
+                    if (r == 200) okUrl = info.mirrorUrl2;
                 }
                 if (r != 200) {
                     Diagnostics.log(activity, "update", "下载失败 r=" + r);
-                    notifyPage(r < 0 ? "下载失败（网络错误），请稍后重试" : "下载失败（HTTP " + r + "），请稍后重试");
+                    notifyPage("下载失败，请稍后重试；或到 GitHub Releases 手动下载");
                     apk.delete();
                     return;
                 }
-                Diagnostics.log(activity, "update", "下载完成，准备安装");
+                Diagnostics.log(activity, "update", "下载完成，准备安装 okUrl=" + okUrl);
                 progressDone("下载完成，准备安装…");
                 final File fapk = apk;
                 activity.runOnUiThread(new Runnable() {
