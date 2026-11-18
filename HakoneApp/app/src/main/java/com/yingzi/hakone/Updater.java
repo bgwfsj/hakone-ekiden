@@ -436,27 +436,24 @@ public class Updater {
             notifyPage("安装启动失败，请到 GitHub Release 手动下载安装");
             return;
         }
-        // 1) 系统安装会话（自带确认界面，兼容性最好）。文件写入与提交放后台线程，避免主线程 ANR/闪退。
+        // 1) FileProvider + 系统安装器优先（v1.0.6 起验证过的路径，国产 ROM 兼容最好）
+        progressDone("已准备好安装包，请在弹出的安装界面确认安装");
+        if (installViaView(apk)) return;
+        // 2) 系统安装会话兜底（后台线程写入与提交，避免主线程 ANR/闪退）
         if (Build.VERSION.SDK_INT >= 21) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     boolean ok = installViaSession(apk);
                     if (!ok) {
-                        Diagnostics.log(activity, "update", "会话安装失败，回退 FileProvider");
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() { installFallback(apk); }
-                        });
+                        Diagnostics.log(activity, "update", "两种安装方式都失败");
+                        notifyPage("自动安装失败，请到 GitHub Release 手动下载安装");
                     }
                 }
             }).start();
             return;
         }
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() { installFallback(apk); }
-        });
+        notifyPage("自动安装失败，请到 GitHub Release 手动下载安装");
     }
 
     /** PackageInstaller 会话安装：系统自带确认界面，不依赖外部安装器 */
@@ -492,8 +489,8 @@ public class Updater {
         }
     }
 
-    /** 文件共享 + 系统安装器兜底（v1.0.6 方案，国产 ROM 兼容性好） */
-    private void installFallback(File apk) {
+    /** FileProvider + 系统安装器：v1.0.6 起验证过的路径，国产 ROM 兼容最好 */
+    private boolean installViaView(File apk) {
         try {
             Uri uri = FileProvider.getUriForFile(activity, activity.getPackageName() + ".fileprovider", apk);
             Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -507,9 +504,11 @@ public class Updater {
             NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
             if (nm != null) nm.cancel(NOTIFY_ID);
             Diagnostics.log(activity, "update", "已唤起系统安装器（FileProvider）");
+            return true;
         } catch (Throwable t) {
             Diagnostics.logCrash(activity, t);
-            notifyPage("自动安装失败，请到 GitHub Release 手动下载安装");
+            Diagnostics.log(activity, "update", "FileProvider 安装失败: " + t);
+            return false;
         }
     }
 

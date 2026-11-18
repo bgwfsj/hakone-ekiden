@@ -55,7 +55,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File _tools/verify.ps1
 
 ## 在线更新与备份
 - 打开 App 约 1.5 秒后自动检查 GitHub Releases 最新版；有新版本先自动备份存档（只保留最近 2 份，多的清理），再下载安装
-- 更新包下载：通知栏进度 → SHA-256 校验（读取 Release 附件的 digest）→ 系统安装会话安装（后台线程、结果明确提示；失败自动回退 FileProvider）
+- 更新包下载：通知栏进度 → SHA-256 校验（读取 Release 附件的 digest）→ FileProvider 唤起系统安装器（v1.0.6 验证路径，优先）；系统安装会话兜底；安装成功有通知提醒
 - 菜单里可手动「检查更新」「备份存档」「导出诊断日志」（更新失败时可导出版本/设备/更新与崩溃记录排查）
 - 更新仓库地址在 `HakoneApp/app/src/main/java/com/yingzi/hakone/Updater.java` 的 `OWNER` / `REPO`
 
