@@ -404,28 +404,37 @@ public class Updater {
     }
 
     private void updateProgress(long done, long size) {
-        NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (nm == null) return;
-        int pct = size > 0 ? (int) (done * 100 / size) : 0;
-        NotificationCompat.Builder b = new NotificationCompat.Builder(activity, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_stat_run)
-                .setContentTitle("正在下载更新")
-                .setContentText(pct + "%（" + (size / 1024 / 1024) + " MB）")
-                .setProgress(size > 0 ? 100 : 0, pct, size <= 0)
-                .setOngoing(true)
-                .setPriority(NotificationCompat.PRIORITY_LOW);
-        nm.notify(NOTIFY_ID, b.build());
+        try {
+            NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm == null) return;
+            int pct = size > 0 ? (int) (done * 100 / size) : 0;
+            NotificationCompat.Builder b = new NotificationCompat.Builder(activity, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_stat_run)
+                    .setContentTitle("正在下载更新")
+                    .setContentText(pct + "%（" + (size / 1024 / 1024) + " MB）")
+                    .setProgress(size > 0 ? 100 : 0, pct, size <= 0)
+                    .setOngoing(true)
+                    .setPriority(NotificationCompat.PRIORITY_LOW);
+            nm.notify(NOTIFY_ID, b.build());
+        } catch (Throwable t) {
+            Diagnostics.log(activity, "update", "进度通知失败: " + t);
+        }
     }
 
     private void progressDone(String text) {
-        NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (nm == null) return;
-        NotificationCompat.Builder b = new NotificationCompat.Builder(activity, CHANNEL_ID)
-                .setContentTitle("更新")
-                .setContentText(text)
-                .setProgress(0, 0, false)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-        nm.notify(NOTIFY_ID, b.build());
+        try {
+            NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm == null) return;
+            NotificationCompat.Builder b = new NotificationCompat.Builder(activity, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_stat_run)
+                    .setContentTitle("更新")
+                    .setContentText(text)
+                    .setProgress(0, 0, false)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+            nm.notify(NOTIFY_ID, b.build());
+        } catch (Throwable t) {
+            Diagnostics.log(activity, "update", "进度通知失败: " + t);
+        }
     }
 
     private void ensureNotifyPermission() {
