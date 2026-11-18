@@ -17,4 +17,4 @@ _tools/downloads/
 # QA 截图（可再生）
 _qa/*.png
 _qa/cdp_profile/
-_qa/info_profile/
+_qa/info_profile/_qa/align_profile/

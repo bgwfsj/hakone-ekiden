@@ -97,9 +97,9 @@ body{
   box-shadow:0 0 12px rgba(10,168,122,.4);
   transition:width .6s cubic-bezier(.22,.61,.36,1);
 }
-.goal-nums{display:flex;align-items:baseline;gap:6px;}
+.goal-nums{display:flex;align-items:baseline;gap:6px;margin-bottom:12px;}
 .goal-nums .big{font-size:clamp(30px,9vw,42px);font-weight:200;letter-spacing:-.02em;line-height:1;}
-.goal-best{font-size:11px;color:var(--sub);margin-left:auto;white-space:nowrap;font-weight:400;}
+.goal-best{font-size:11px;color:var(--sub);white-space:nowrap;font-weight:400;text-align:right;} .goal-best:empty{display:none;}
 .goal-pred{font-size:11px;color:var(--weak);margin-top:8px;text-align:right;letter-spacing:.04em;}
 .goal-head-right{display:flex;align-items:center;gap:8px;}
 .info-btn{
@@ -140,11 +140,11 @@ body{
 .stat .num{font-size:clamp(24px,7vw,32px);font-weight:200;line-height:1.1;}
 .stat .num small{font-size:11px;color:var(--weak);font-weight:400;margin-left:2px;}
 .stat .lbl{margin-top:6px;font-size:11px;color:var(--weak);letter-spacing:.2em;}
-.avg{text-align:center;font-size:11px;color:var(--sub);margin:-4px 0 14px;letter-spacing:.06em;}
+
 .best{border-top:1px solid var(--line-soft);padding:10px 2px 2px;margin-top:2px;}
-.best-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;}
+.best-row{display:grid;grid-template-columns:auto 1fr;align-items:center;padding:5px 0;gap:12px;}
 .best-k{font-size:11px;color:var(--weak);letter-spacing:.1em;white-space:nowrap;}
-.best-v{font-size:12.5px;color:var(--sub);font-variant-numeric:tabular-nums;text-align:right;}
+.best-v{display:flex;align-items:center;font-size:12.5px;color:var(--sub);font-variant-numeric:tabular-nums;} .bv{white-space:nowrap;} .bv-d{min-width:82px;text-align:right;} .bv-p{min-width:62px;text-align:right;} .bv-date{margin-left:auto;text-align:right;}
 
 /* ---------- 日历 ---------- */
 .cal-stats{display:flex;padding:16px 4px 14px;border-top:1px solid var(--line-soft);margin-bottom:14px;}

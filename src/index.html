@@ -31,11 +31,11 @@
         <button class="info-btn" id="goalInfo" aria-label="进度如何计算">?</button>
       </div>
     </div>
-    <div class="bar"><div class="bar-fill" id="goalBar"></div></div>
     <div class="goal-nums">
       <span class="big mono" id="goalPct">0%</span>
-      <span class="goal-best mono" id="goalBest"></span>
     </div>
+    <div class="bar"><div class="bar-fill" id="goalBar"></div></div>
+    <div class="goal-best mono" id="goalBest"></div>
     <div class="last-row">
       <span class="last-lbl">上一次</span>
       <div class="last-bar"><div class="last-fill" id="goalLastBar"></div></div>
@@ -63,6 +63,10 @@
         <div class="num mono" id="statTime">0:00</div>
         <div class="lbl">时长</div>
       </div>
+      <div class="stat">
+        <div class="num mono" id="statPace">&mdash;</div>
+        <div class="lbl">平均配速</div>
+      </div>
     </div>
     <div class="best">
       <div class="best-row">
@@ -75,7 +79,6 @@
       </div>
     </div>
   </section>
-  <p class="avg mono" id="avgPace">平均配速 · &mdash;</p>
 
   <!-- 日历 -->
   <section class="card cal">

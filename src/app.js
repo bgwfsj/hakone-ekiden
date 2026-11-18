@@ -29,8 +29,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.0.8';
+var APP_VERSION = '1.0.9';
 var APP_CHANGELOG = [
+  'v1.0.9 · 目标框重排：含金量在进度条之上、最佳一次在下方且去掉达成%；总距离显示整数；最长距离/最快配速统一「距离·配速·日期」并补位对齐；平均配速并入总统计',
   'v1.0.8 · 优化在线更新：直连 GitHub 不畅时自动切换镜像通道，检查与下载更稳',
   'v1.0.7 · 新增数据导入导出（JSON）；左上角改名「你喜欢跑步吗？」；目标进度不再归零，慢跑也有积累；日历详情显示每次达成；日历新增本月次数/距离/时长；翻月只跳有数据的月份',
   'v1.0.6 · 应用名改为「强风吹拂2」',
@@ -185,10 +186,10 @@ function renderStats(){
   var cnt = 0, dist = 0, dur = 0;
   records.forEach(function(r){ cnt++; dist += r.distance; dur += r.dur; });
   $('statCount').textContent = cnt;
-  $('statDist').innerHTML = dist.toFixed(2) + '<small>km</small>';
+  $('statDist').innerHTML = Math.round(dist) + '<small>km</small>';
   $('statTime').textContent = fmtTotalDur(dur);
   var pace = dist > 0 ? dur/dist : null;
-  $('avgPace').textContent = '平均配速 · ' + (pace != null ? fmtPace(pace) : '—');
+  $('statPace').textContent = pace != null ? fmtPace(pace) : '—';
 
   // 最长距离 / 最快配速（带上那次日期和配速/距离）
   var bestD = null, bestP = null;
@@ -202,11 +203,24 @@ function renderStats(){
     var p = String(s).split('-');
     return parseInt(p[1],10) + '月' + parseInt(p[2],10) + '日';
   }
-  $('bestDist').textContent = bestD
-    ? bestD.distance.toFixed(2) + ' km · ' + dateCN(bestD.date) + ' · ' + fmtPace(bestD.dur/bestD.distance)
+  // 一位整数补一个空格，让一位/两位数字上下对齐
+  function pad2Num(s){
+    var sp = s.split(' ');
+    if(sp[0].indexOf('.') === 1) sp[0] = ' ' + sp[0];
+    return sp.join(' ');
+  }
+  function pad2Pace(s){
+    if(s.indexOf("'") === 1) s = " " + s;
+    return s;
+  }
+  function bestCells(dist, pace, date){
+    return '<span class="bv bv-d">' + dist + ' · </span><span class="bv bv-p">' + pace + ' · </span><span class="bv bv-date">' + date + '</span>';
+  }
+  $('bestDist').innerHTML = bestD
+    ? bestCells(pad2Num(bestD.distance.toFixed(2) + ' km'), pad2Pace(fmtPace(bestD.dur/bestD.distance)), dateCN(bestD.date))
     : '—';
-  $('bestPace').textContent = bestP
-    ? fmtPace(bestP.pace) + ' · ' + dateCN(bestP.rec.date) + ' · ' + bestP.rec.distance.toFixed(2) + ' km'
+  $('bestPace').innerHTML = bestP
+    ? bestCells(pad2Num(bestP.rec.distance.toFixed(2) + ' km'), pad2Pace(fmtPace(bestP.pace)), dateCN(bestP.rec.date))
     : '—';
   return { cnt:cnt, dist:dist, dur:dur };
 }
@@ -261,7 +275,7 @@ function renderGoal(){
     return;
   }
   var achieved = b.dist >= GOAL_KM - 0.005 && b.pace <= GOAL_PACE + 0.01;
-  $('goalBest').textContent = '最佳一次 · ' + b.dist.toFixed(2) + ' km · ' + fmtPace(b.pace) + ' · 达成 ' + Math.round(b.pct*100) + '%';
+  $('goalBest').textContent = '最佳一次 · ' + b.dist.toFixed(2) + ' km · ' + fmtPace(b.pace);
   $('goalPred').textContent = '按此配速，10 km 预计 ' + fmtDuration(Math.round(b.pace * GOAL_KM));
   var poem;
   if(achieved) poem = '一小时十公里，抵达了。风替你欢呼。';

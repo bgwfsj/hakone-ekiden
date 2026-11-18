@@ -112,7 +112,7 @@ async function main(){
   console.log('--- 刷新后统计/目标 ---');
   const cnt = await ev("document.querySelector('#statCount').textContent");
   const dist = await ev("document.querySelector('#statDist').textContent");
-  const pace = await ev("document.querySelector('#avgPace').textContent");
+  const pace = await ev("document.querySelector('#statPace').textContent");
   const goalPct = await ev("document.querySelector('#goalPct').textContent");
   const goalBest = await ev("document.querySelector('#goalBest').textContent");
   const goalPred = await ev("document.querySelector('#goalPred').textContent");
@@ -123,9 +123,9 @@ async function main(){
   console.log('上一次含金量: ' + goalLast1);
   if (goalLast1 !== '33%') throw new Error('上一次应为 33%, 实际 ' + goalLast1);
   if (cnt !== '4') throw new Error('次数应为 4, 实际 ' + cnt);
-  if (dist !== '18.82km') throw new Error('总距离应为 18.82km, 实际 ' + dist);
+  if (dist !== '19km') throw new Error('总距离应为 19km(整数), 实际 ' + dist);
   if (goalPct !== '61%') throw new Error('最佳含金量应为 61%, 实际 ' + goalPct);
-  if (!goalBest.includes('6.10 km') || !goalBest.includes('61%')) throw new Error('最佳一次描述错误: ' + goalBest);
+  if (!goalBest.includes('6.10 km') || goalBest.includes('达成')) throw new Error('最佳一次描述错误: ' + goalBest);
   if (goalPred !== '按此配速，10 km 预计 59:50') throw new Error('预测错误: ' + goalPred);
   const has = await ev("document.querySelectorAll('.cal-grid .day.has').length");
   console.log('本月跑步标记数: ' + has);
@@ -141,8 +141,8 @@ async function main(){
   const bestP = await ev("document.querySelector('#bestPace').textContent");
   console.log('最长距离: ' + bestD + ' | 最快配速: ' + bestP);
   const Q = String.fromCharCode(34);
-  const expD = '6.10 km · 11月16日 · 5\'59' + Q;
-  const expP = '5\'57' + Q + ' · 10月19日 · 4.20 km';
+  const expD = ' 6.10 km ·  5\'59' + Q + ' · 11月16日';
+  const expP = ' 4.20 km ·  5\'57' + Q + ' · 10月19日';
   if (bestD !== expD) throw new Error('最长距离错误: ' + bestD + '，应为 ' + expD);
   if (bestP !== expP) throw new Error('最快配速错误: ' + bestP + '，应为 ' + expP);
   await shot('1_home');
@@ -199,7 +199,7 @@ async function main(){
   const menuVer = await ev("document.getElementById('menuVer').textContent");
   console.log('菜单打开: ' + menuOpen + ' 版本: ' + menuVer);
   if (!menuOpen) throw new Error('菜单未打开');
-  if (menuVer !== '版本 v1.0.8') throw new Error('菜单版本号错误: ' + menuVer);
+  if (menuVer !== '版本 v1.0.9') throw new Error('菜单版本号错误: ' + menuVer);
   const hasExport = await ev("document.getElementById('menuExport') !== null");
   const hasImport = await ev("document.getElementById('menuImport') !== null");
   console.log('菜单含导出/导入: ' + hasExport + '/' + hasImport);
@@ -210,8 +210,8 @@ async function main(){
   const clCount = await ev("document.querySelectorAll('#changelog li').length");
   console.log('关于打开: ' + aboutOpen + ' 版本: ' + aboutVer + ' 更新记录: ' + clCount);
   if (!aboutOpen) throw new Error('关于未打开');
-  if (aboutVer !== 'v1.0.8') throw new Error('关于版本号错误: ' + aboutVer);
-  if (clCount !== 9) throw new Error('更新记录应为 9 条');
+  if (aboutVer !== 'v1.0.9') throw new Error('关于版本号错误: ' + aboutVer);
+  if (clCount !== 10) throw new Error('更新记录应为 10 条');
   await ev("document.getElementById('aboutDone').click()");
   await ev("document.getElementById('menuBtn').click()");
   await ev("document.getElementById('menuCheckUpdate').click()");
