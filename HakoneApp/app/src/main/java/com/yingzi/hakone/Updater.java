@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  * 应用内更新：
  * 1. 查 GitHub Releases/latest（API 优先，失败自动改用网页接口，再不行走加速镜像，避免限流/被阻断）
  * 2. 发现新版本 -> 弹窗确认 -> 先自动备份存档（保留最近 2 份）-> 下载
- * 3. 下载直连 GitHub，不畅时自动切换镜像通道；SHA-256 校验通过后经 FileProvider 唤起系统安装器
+ * 3. 下载直连 GitHub，不畅时自动切换镜像通道；SHA-256 校验通过后经系统安装会话安装，失败回退 FileProvider
  */
 public class Updater {
     /** GitHub 仓库：在线更新从这里拉取 Release */
@@ -83,14 +83,17 @@ public class Updater {
             public void run() {
                 UpdateInfo info = fetchLatest();
                 if (info == null) {
+                    Diagnostics.log(activity, "update", "检查更新失败（网络或限流）");
                     notifyPage("检查更新失败（网络或限流）");
                     return;
                 }
                 String cur = BuildConfig.VERSION_NAME;
                 if (!isNewer(info.version, cur)) {
+                    Diagnostics.log(activity, "update", "已是最新版本 v" + cur);
                     notifyPage("已是最新版本 v" + cur);
                     return;
                 }
+                Diagnostics.log(activity, "update", "发现新版本 v" + info.version + "（当前 v" + cur + "）");
                 final UpdateInfo fi = info;
                 activity.runOnUiThread(new Runnable() {
                     @Override
@@ -236,15 +239,26 @@ public class Updater {
 
     private void showUpdateDialog(final UpdateInfo info) {
         ensureNotifyPermission();
-        new AlertDialog.Builder(activity)
-                .setTitle("发现新版本 v" + info.version)
-                .setMessage("更新前会自动备份当前存档（备份只保留最近 2 份）")
-                .setPositiveButton("更新", (d, w) -> backupAndUpdate(info))
-                .setNegativeButton("稍后", null)
-                .show();
+        try {
+            new AlertDialog.Builder(activity)
+                    .setTitle("发现新版本 v" + info.version)
+                    .setMessage("更新前会自动备份当前存档（备份只保留最近 2 份）")
+                    .setPositiveButton("更新", (d, w) -> backupAndUpdate(info))
+                    .setNegativeButton("稍后", null)
+                    .show();
+        } catch (Throwable t) {
+            Diagnostics.logCrash(activity, t);
+            notifyPage("更新弹窗打不开，请到菜单重新「检查更新」");
+        }
     }
 
     private void backupAndUpdate(final UpdateInfo info) {
+        // 先确认「安装未知应用」权限，未授权先引导，避免下载完 100% 后才弹窗失败/闪退
+        if (Build.VERSION.SDK_INT >= 26 && !activity.getPackageManager().canRequestPackageInstalls()) {
+            Diagnostics.log(activity, "update", "未授权安装未知应用，先引导设置");
+            showUnknownSourceDialog();
+            return;
+        }
         activity.exportAndBackup(new Runnable() {
             @Override
             public void run() {
@@ -272,10 +286,12 @@ public class Updater {
                     r = downloadFrom(info.mirrorUrl, apk, info.sha256, false);
                 }
                 if (r != 200) {
+                    Diagnostics.log(activity, "update", "下载失败 r=" + r);
                     notifyPage(r < 0 ? "下载失败（网络错误），请稍后重试" : "下载失败（HTTP " + r + "），请稍后重试");
                     apk.delete();
                     return;
                 }
+                Diagnostics.log(activity, "update", "下载完成，准备安装");
                 progressDone("下载完成，准备安装…");
                 final File fapk = apk;
                 activity.runOnUiThread(new Runnable() {
@@ -362,40 +378,39 @@ public class Updater {
         }
     }
 
-    private void install(File apk) {
-        if (Build.VERSION.SDK_INT >= 26 && !activity.getPackageManager().canRequestPackageInstalls()) {
-            new AlertDialog.Builder(activity)
-                    .setTitle("需要允许安装")
-                    .setMessage("更新需要安装新版本，请允许「安装未知应用」")
-                    .setPositiveButton("去设置", (d, w) -> {
-                        Intent i = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                                Uri.parse("package:" + activity.getPackageName()));
-                        activity.startActivity(i);
-                    })
-                    .setNegativeButton("取消", null)
-                    .show();
-            return;
-        }
-        // 1) 系统安装会话（自带确认界面，兼容性最好）
-        if (Build.VERSION.SDK_INT >= 21) {
-            try {
-                if (installViaSession(apk)) return;
-            } catch (Exception ignored) { }
-        }
-        // 2) 文件共享 + 系统安装器兜底
+    private void install(final File apk) {
         try {
-            Uri uri = FileProvider.getUriForFile(activity, activity.getPackageName() + ".fileprovider", apk);
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(uri, "application/vnd.android.package-archive");
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            activity.startActivity(intent);
-            NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
-            if (nm != null) nm.cancel(NOTIFY_ID);
+            if (Build.VERSION.SDK_INT >= 26 && !activity.getPackageManager().canRequestPackageInstalls()) {
+                Diagnostics.log(activity, "update", "install: 未授权安装未知应用");
+                showUnknownSourceDialog();
+                return;
+            }
+        } catch (Throwable t) {
+            Diagnostics.logCrash(activity, t);
+            notifyPage("安装启动失败，请到 GitHub Release 手动下载安装");
             return;
-        } catch (Exception e) {
-            notifyPage("自动安装失败，请到 GitHub Release 手动下载安装");
         }
+        // 1) 系统安装会话（自带确认界面，兼容性最好）。文件写入与提交放后台线程，避免主线程 ANR/闪退。
+        if (Build.VERSION.SDK_INT >= 21) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    boolean ok = installViaSession(apk);
+                    if (!ok) {
+                        Diagnostics.log(activity, "update", "会话安装失败，回退 FileProvider");
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() { installFallback(apk); }
+                        });
+                    }
+                }
+            }).start();
+            return;
+        }
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() { installFallback(apk); }
+        });
     }
 
     /** PackageInstaller 会话安装：系统自带确认界面，不依赖外部安装器 */
@@ -414,6 +429,7 @@ public class Updater {
             out.close();
             in.close();
             Intent done = new Intent("com.yingzi.hakone.INSTALL_DONE");
+            done.setPackage(activity.getPackageName());
             PendingIntent pending = PendingIntent.getBroadcast(activity, 0, done,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             session.commit(pending.getIntentSender());
@@ -421,10 +437,61 @@ public class Updater {
             session = null;
             NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
             if (nm != null) nm.cancel(NOTIFY_ID);
+            Diagnostics.log(activity, "update", "会话已提交，等待安装结果");
             return true;
-        } catch (Exception e) {
+        } catch (Throwable t) {
+            Diagnostics.log(activity, "update", "会话安装异常: " + t);
             if (session != null) { try { session.abandon(); } catch (Exception ignored) { } }
             return false;
+        }
+    }
+
+    /** 文件共享 + 系统安装器兜底（v1.0.6 方案，国产 ROM 兼容性好） */
+    private void installFallback(File apk) {
+        try {
+            Uri uri = FileProvider.getUriForFile(activity, activity.getPackageName() + ".fileprovider", apk);
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(uri, "application/vnd.android.package-archive");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (Build.VERSION.SDK_INT >= 26) {
+                try { intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true); } catch (Throwable ignored) { }
+            }
+            activity.startActivity(intent);
+            NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm != null) nm.cancel(NOTIFY_ID);
+            Diagnostics.log(activity, "update", "已唤起系统安装器（FileProvider）");
+        } catch (Throwable t) {
+            Diagnostics.logCrash(activity, t);
+            notifyPage("自动安装失败，请到 GitHub Release 手动下载安装");
+        }
+    }
+
+    private void showUnknownSourceDialog() {
+        if (activity.isFinishing() || activity.isDestroyed()) {
+            Diagnostics.log(activity, "update", "页面不可用，跳过安装授权弹窗");
+            notifyPage("需要先允许「安装未知应用」，请在系统设置中开启后重新检查更新");
+            return;
+        }
+        try {
+            new AlertDialog.Builder(activity)
+                    .setTitle("需要允许安装")
+                    .setMessage("更新需要安装新版本。请允许「安装未知应用」，回到应用后重新点「检查更新」。")
+                    .setPositiveButton("去设置", (d, w) -> {
+                        try {
+                            Intent i = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                                    Uri.parse("package:" + activity.getPackageName()));
+                            activity.startActivity(i);
+                        } catch (Exception e) {
+                            Diagnostics.log(activity, "update", "打开设置失败: " + e);
+                            notifyPage("无法打开设置，请手动到系统设置中允许安装未知应用");
+                        }
+                    })
+                    .setNegativeButton("取消", null)
+                    .show();
+        } catch (Throwable t) {
+            Diagnostics.logCrash(activity, t);
+            notifyPage("需要先允许「安装未知应用」，请在系统设置中开启后重新检查更新");
         }
     }
 

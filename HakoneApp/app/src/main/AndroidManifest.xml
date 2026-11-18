@@ -31,5 +31,12 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+        <receiver
+            android:name=".InstallReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.yingzi.hakone.INSTALL_DONE" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

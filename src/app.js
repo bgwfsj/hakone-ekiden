@@ -29,8 +29,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.0.11';
+var APP_VERSION = '1.0.12';
 var APP_CHANGELOG = [
+  'v1.0.12 · 修复在线更新安装：安装移到后台线程、安装结果明确提示，避免下载完成卡住闪退；新增「导出诊断日志」',
   'v1.0.11 · 统计重排：次数与平均配速一行、距离与时长一行，手机上更清爽',
   'v1.0.10 · 修复在线更新安装：改用系统安装会话，异常不再闪退并提示手动安装',
   'v1.0.9 · 目标框重排：含金量在进度条之上、最佳一次在下方且去掉达成%；总距离显示整数；最长距离/最快配速统一「距离·配速·日期」并补位对齐；平均配速并入总统计',
@@ -756,6 +757,10 @@ bind('importFile', 'change', function(){
   reader.onerror = function(){ toast('读取文件失败'); };
   reader.readAsText(f);
   this.value = '';
+});
+bind('menuDiag', 'click', function(){
+  closeSheets();
+  callNative('exportDiagnostics');
 });
 bind('menuAbout', 'click', function(){ closeSheets(); renderAbout(); openSheet($('aboutSheet')); });
 bind('aboutClose', 'click', closeSheets);

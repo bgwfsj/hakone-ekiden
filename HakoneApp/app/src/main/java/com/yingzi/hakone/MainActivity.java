@@ -22,6 +22,7 @@ import java.util.Locale;
 public class MainActivity extends Activity {
     private static final int REQ_EXPORT = 1001;
     private static final int REQ_IMPORT = 1002;
+    private static final int REQ_DIAG = 1003;
     private WebView web;
     private BackupManager backupManager;
     private Updater updater;
@@ -29,6 +30,16 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final Thread.UncaughtExceptionHandler def = Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread thread, Throwable throwable) {
+                try { Diagnostics.logCrash(MainActivity.this, throwable); } catch (Throwable ignored) { }
+                if (def != null) def.uncaughtException(thread, throwable);
+                else android.os.Process.killProcess(android.os.Process.myPid());
+            }
+        });
+        Diagnostics.log(this, "app", "启动 v" + BuildConfig.VERSION_NAME + " (code " + BuildConfig.VERSION_CODE + ")");
         web = new WebView(this);
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
@@ -94,6 +105,23 @@ public class MainActivity extends Activity {
             });
         }
 
+        /** 导出诊断日志（版本/设备/更新与崩溃记录） */
+        @JavascriptInterface
+        public void exportDiagnostics() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("text/plain");
+                    intent.putExtra(Intent.EXTRA_TITLE,
+                            "强风吹拂2-诊断-" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date()) + ".log");
+                    try { startActivityForResult(intent, REQ_DIAG); }
+                    catch (Exception e) { notifyPage("导出失败：无法打开保存位置"); }
+                }
+            });
+        }
+
         @JavascriptInterface
         public void importData() {
             runOnUiThread(new Runnable() {
@@ -149,7 +177,9 @@ public class MainActivity extends Activity {
         web.post(new Runnable() {
             @Override
             public void run() {
-                web.evaluateJavascript("window.Hakone.notify(" + org.json.JSONObject.quote(msg) + ")", null);
+                try {
+                    web.evaluateJavascript("window.Hakone.notify(" + org.json.JSONObject.quote(msg) + ")", null);
+                } catch (Throwable ignored) { }
             }
         });
     }
@@ -159,7 +189,14 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
         final Uri uri = data.getData();
-        if (requestCode == REQ_EXPORT) {
+        if (requestCode == REQ_DIAG) {
+            try {
+                Diagnostics.writeTo(this, uri);
+                notifyPage("已导出诊断日志");
+            } catch (Exception e) {
+                notifyPage("导出诊断日志失败：" + e.getMessage());
+            }
+        } else if (requestCode == REQ_EXPORT) {
             fetchJsonFromPage("window.Hakone.exportJson()", new JsonCallback() {
                 @Override
                 public void onResult(String json) {
