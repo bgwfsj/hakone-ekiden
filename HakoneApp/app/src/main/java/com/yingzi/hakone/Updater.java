@@ -4,9 +4,11 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageInstaller;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -24,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -309,6 +312,12 @@ public class Updater {
             fos.close();
             in.close();
             if (sha != null && !sha256(apk).equalsIgnoreCase(sha)) return -2;
+            if (sha == null) {
+                FileInputStream fi = new FileInputStream(apk);
+                byte[] head = new byte[4];
+                if (fi.read(head) != 4 || head[0] != 'P' || head[1] != 'K') { fi.close(); return -3; }
+                fi.close();
+            }
             return 200;
         } catch (Exception e) {
             return -1;
@@ -318,7 +327,6 @@ public class Updater {
     }
 
     private void updateProgress(long done, long size) {
-        ensureNotifyPermission();
         NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm == null) return;
         int pct = size > 0 ? (int) (done * 100 / size) : 0;
@@ -368,14 +376,56 @@ public class Updater {
                     .show();
             return;
         }
-        Uri uri = FileProvider.getUriForFile(activity, activity.getPackageName() + ".fileprovider", apk);
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(uri, "application/vnd.android.package-archive");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        activity.startActivity(intent);
-        NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (nm != null) nm.cancel(NOTIFY_ID);
+        // 1) 系统安装会话（自带确认界面，兼容性最好）
+        if (Build.VERSION.SDK_INT >= 21) {
+            try {
+                if (installViaSession(apk)) return;
+            } catch (Exception ignored) { }
+        }
+        // 2) 文件共享 + 系统安装器兜底
+        try {
+            Uri uri = FileProvider.getUriForFile(activity, activity.getPackageName() + ".fileprovider", apk);
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(uri, "application/vnd.android.package-archive");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            activity.startActivity(intent);
+            NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm != null) nm.cancel(NOTIFY_ID);
+            return;
+        } catch (Exception e) {
+            notifyPage("自动安装失败，请到 GitHub Release 手动下载安装");
+        }
+    }
+
+    /** PackageInstaller 会话安装：系统自带确认界面，不依赖外部安装器 */
+    private boolean installViaSession(File apk) {
+        PackageInstaller.Session session = null;
+        try {
+            PackageInstaller pi = activity.getPackageManager().getPackageInstaller();
+            PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+            int sessionId = pi.createSession(params);
+            session = pi.openSession(sessionId);
+            InputStream in = new FileInputStream(apk);
+            OutputStream out = session.openWrite("hakone.apk", 0, apk.length());
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+            out.close();
+            in.close();
+            Intent done = new Intent("com.yingzi.hakone.INSTALL_DONE");
+            PendingIntent pending = PendingIntent.getBroadcast(activity, 0, done,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            session.commit(pending.getIntentSender());
+            session.close();
+            session = null;
+            NotificationManager nm = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm != null) nm.cancel(NOTIFY_ID);
+            return true;
+        } catch (Exception e) {
+            if (session != null) { try { session.abandon(); } catch (Exception ignored) { } }
+            return false;
+        }
     }
 
     private String sha256(File f) {
