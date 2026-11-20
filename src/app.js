@@ -29,8 +29,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.0.18';
+var APP_VERSION = '1.0.19';
 var APP_CHANGELOG = [
+  'v1.0.19 · 记录完成弹出「强！」鼓励；日历跑步日改为「强」字；菜单新增背景选择与卡片配色',
   'v1.0.18 · 下载完成提示带上新版本号',
   'v1.0.17 · 修复在线更新下载完成后闪退：进度通知缺少小图标导致系统崩溃，已补上并加固',
   'v1.0.16 · 在线更新防重复触发：下载/安装进行中再点检查更新不会重复下载',
@@ -338,6 +339,7 @@ function renderCal(){
     num.textContent = d;
     var mark = document.createElement('span');
     mark.className = 'mark';
+    if(byDate[date]) mark.textContent = '强';
     cell.appendChild(num);
     cell.appendChild(mark);
     cell.addEventListener('click', (function(date){ return function(){ openDetail(date); }; })(date));
@@ -500,6 +502,7 @@ function saveRecord(){
     toast('已更新');
   }else{
     records.push(rec);
+    praise();
     toast('已记录 · ' + rec.distance.toFixed(2) + ' km');
   }
   save();
@@ -588,7 +591,126 @@ function toast(msg){
   toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 1800);
 }
 
+/* ---------- 记录鼓励 ---------- */
+var praiseTimer = null;
+function praise(){
+  var el = $("praise");
+  el.classList.add("open");
+  clearTimeout(praiseTimer);
+  praiseTimer = setTimeout(function(){ el.classList.remove("open"); }, 1400);
+}
+
+
+/* ---------- 背景选择 ---------- */
+var BG_KEY = 'hakone_bg_v1';
+var BGS = [
+  { id:'default', name:'默认', color:'#f6f8fa', image:'radial-gradient(70% 40% at 50% 0%, rgba(10,168,122,.10), transparent 62%), radial-gradient(65% 45% at 50% 100%, rgba(11,142,214,.10), transparent 62%), repeating-linear-gradient(0deg, transparent 0 43px, rgba(13,32,45,.035) 44px), repeating-linear-gradient(90deg, transparent 0 43px, rgba(13,32,45,.035) 44px)', size:'auto' },
+  { id:'snow', name:'晴空白', color:'#ffffff', image:'none', size:'auto' },
+  { id:'mist', name:'雾灰', color:'#eef1f4', image:'none', size:'auto' },
+  { id:'sakura', name:'樱花粉', color:'#fdf1f5', image:'none', size:'auto' },
+  { id:'mint', name:'薄荷绿', color:'#eefaf4', image:'none', size:'auto' },
+  { id:'sky', name:'晴空蓝', color:'#eef6fd', image:'none', size:'auto' },
+  { id:'cream', name:'暖米', color:'#faf5ec', image:'none', size:'auto' },
+  { id:'lav', name:'淡紫', color:'#f4f1fb', image:'none', size:'auto' },
+  { id:'lines-h', name:'横线', color:'#f7f8fa', image:'repeating-linear-gradient(0deg, transparent 0 13px, rgba(13,32,45,.05) 14px)', size:'auto' },
+  { id:'lines-v', name:'竖线', color:'#f7f8fa', image:'repeating-linear-gradient(90deg, transparent 0 13px, rgba(13,32,45,.05) 14px)', size:'auto' },
+  { id:'diag', name:'斜纹', color:'#f7f8fa', image:'repeating-linear-gradient(45deg, rgba(13,32,45,.05) 0 1px, transparent 1px 11px)', size:'auto' },
+  { id:'grid', name:'网格', color:'#f7f8fa', image:'repeating-linear-gradient(0deg, transparent 0 19px, rgba(13,32,45,.05) 20px), repeating-linear-gradient(90deg, transparent 0 19px, rgba(13,32,45,.05) 20px)', size:'auto' },
+  { id:'dots', name:'圆点', color:'#f7f8fa', image:'radial-gradient(rgba(13,32,45,.09) 1.2px, transparent 1.3px)', size:'16px 16px' },
+  { id:'waves', name:'波浪', color:'#f7f8fa', image:'radial-gradient(circle at 0 0, rgba(13,32,45,.055) 2px, transparent 2.5px), radial-gradient(circle at 16px 16px, rgba(13,32,45,.055) 2px, transparent 2.5px)', size:'32px 32px' },
+  { id:'cross', name:'格纹', color:'#f7f8fa', image:'repeating-linear-gradient(45deg, rgba(13,32,45,.045) 0 1px, transparent 1px 12px), repeating-linear-gradient(-45deg, rgba(13,32,45,.045) 0 1px, transparent 1px 12px)', size:'auto' }
+];
+function applyBg(id){
+  if(id === 'default') document.body.removeAttribute('data-bg');
+  else document.body.setAttribute('data-bg', id);
+  try{ localStorage.setItem(BG_KEY, id); }catch(e){}
+  renderBgRow(id);
+}
+function renderBgRow(active){
+  var row = $('bgRow');
+  if(!row) return;
+  row.innerHTML = '';
+  BGS.forEach(function(b){
+    var s = document.createElement('button');
+    s.type = 'button';
+    s.className = 'bg-swatch' + (b.id === active ? ' on' : '');
+    s.title = b.name;
+    s.setAttribute('aria-label', '背景：' + b.name);
+    s.style.backgroundColor = b.color;
+    s.style.backgroundImage = b.image;
+    s.style.backgroundSize = b.size;
+    s.addEventListener('click', function(){ applyBg(b.id); });
+    row.appendChild(s);
+  });
+}
+
+
+
+/* ---------- 卡片配色 ---------- */
+var CARD_BG_KEY = 'hakone_cardbg_v1';
+var CARD_IDS = [
+  { id:'goal', label:'目标', el:'goalCard' },
+  { id:'stat', label:'统计', el:'statCard' },
+  { id:'cal', label:'日历', el:'calCard' }
+];
+var CARD_TINTS = [
+  { id:'default', name:'默认', css:'rgba(255,255,255,.95)' },
+  { id:'mist', name:'雾灰', css:'rgba(238,241,244,.95)' },
+  { id:'sakura', name:'樱花粉', css:'rgba(253,241,245,.95)' },
+  { id:'mint', name:'薄荷绿', css:'rgba(238,250,244,.95)' },
+  { id:'sky', name:'晴空蓝', css:'rgba(238,246,253,.95)' },
+  { id:'cream', name:'暖米', css:'rgba(250,245,236,.95)' },
+  { id:'lav', name:'淡紫', css:'rgba(244,241,251,.95)' }
+];
+var cardBg = loadCardBg();
+function loadCardBg(){
+  try{ var o = JSON.parse(localStorage.getItem(CARD_BG_KEY) || ''); if(o && typeof o === 'object') return o; }catch(e){}
+  return {};
+}
+function saveCardBg(){ try{ localStorage.setItem(CARD_BG_KEY, JSON.stringify(cardBg)); }catch(e){} }
+function applyCardTint(cardId, tintId){
+  var info = null;
+  CARD_IDS.forEach(function(x){ if(x.id === cardId) info = x; });
+  if(!info) return;
+  var el = $(info.el);
+  if(!el) return;
+  CARD_TINTS.forEach(function(t){ el.classList.remove('tint-' + t.id); });
+  if(tintId !== 'default') el.classList.add('tint-' + tintId);
+  cardBg[cardId] = tintId;
+  saveCardBg();
+  renderCardBgRows();
+}
+function renderCardBgRows(){
+  var wrap = $('cardBgRows');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  CARD_IDS.forEach(function(info){
+    var row = document.createElement('div');
+    row.className = 'cbg-row';
+    var lab = document.createElement('span');
+    lab.className = 'cbg-label';
+    lab.textContent = info.label;
+    var sw = document.createElement('div');
+    sw.className = 'cbg-swatches';
+    var active = cardBg[info.id] || 'default';
+    CARD_TINTS.forEach(function(t){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cbg-swatch' + (t.id === active ? ' on' : '');
+      b.title = t.name;
+      b.style.backgroundColor = t.css;
+      b.addEventListener('click', function(){ applyCardTint(info.id, t.id); });
+      sw.appendChild(b);
+    });
+    row.appendChild(lab);
+    row.appendChild(sw);
+    wrap.appendChild(row);
+  });
+}
+
 /* ---------- 事件 ---------- */
+
+
 function bind(id, evt, fn){ $(id).addEventListener(evt, fn); }
 
 bind('recordBtn', 'click', openRecord);
@@ -599,6 +721,7 @@ bind('detailClose', 'click', closeSheets);
 bind('detailDone', 'click', closeSheets);
 bind('confirmCancel', 'click', closeSheets);
 bind('confirmOk', 'click', doDelete);
+bind('praise', 'click', function(){ $('praise').classList.remove('open'); });
 bind('overlay', 'click', closeSheets);
 bind('fNow', 'click', function(){ $('fTime').value = nowLocalValue(); });
 bind('calTitle', 'click', openJump);
@@ -777,6 +900,15 @@ bind('aboutDone', 'click', closeSheets);
   var now = new Date();
   calCursor = new Date(now.getFullYear(), now.getMonth(), 1);
   $('menuVer').textContent = '版本 v' + APP_VERSION;
+  var savedBg = 'default';
+  try{ savedBg = localStorage.getItem(BG_KEY) || 'default'; }catch(e){}
+  if(savedBg !== 'default') document.body.setAttribute('data-bg', savedBg);
+  renderBgRow(savedBg);
+  CARD_IDS.forEach(function(info){
+    var t = cardBg[info.id] || 'default';
+    if(t !== 'default'){ var el = $(info.el); if(el) el.classList.add('tint-' + t); }
+  });
+  renderCardBgRows();
   renderQuote();
   refreshAll();
   checkEggs();

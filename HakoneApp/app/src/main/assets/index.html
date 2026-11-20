@@ -68,6 +68,45 @@ body{
 .menu-item:last-child{border-bottom:none;}
 .menu-item .arrow{color:var(--weak);font-size:14px;}
 .menu-item:active{color:var(--green);}
+
+/* ---------- 背景选择 ---------- */
+.bg-sec{padding:4px 4px 14px;border-bottom:1px solid var(--line-soft);margin-bottom:6px;}
+.bg-lbl{font-size:11px;color:var(--weak);letter-spacing:.1em;margin:0 0 10px 4px;}
+.bg-row{display:flex;gap:9px;overflow-x:auto;padding:2px 4px 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.bg-row::-webkit-scrollbar{display:none;}
+.bg-swatch{flex:0 0 auto;width:42px;height:42px;border-radius:13px;border:2px solid var(--line);background-color:#f6f8fa;cursor:pointer;padding:0;}
+.bg-swatch.on{border-color:var(--green);box-shadow:0 0 0 1px var(--green);}
+
+/* ---------- 卡片配色 ---------- */
+.cardbg-sec{padding:4px 4px 6px;border-bottom:1px solid var(--line-soft);margin-bottom:6px;}
+.cbg-row{display:flex;align-items:center;gap:8px;padding:4px 2px;}
+.cbg-label{flex:0 0 32px;font-size:12px;color:var(--sub);}
+.cbg-swatches{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 0 6px;}
+.cbg-swatches::-webkit-scrollbar{display:none;}
+.cbg-swatch{flex:0 0 auto;width:26px;height:26px;border-radius:9px;border:2px solid var(--line);cursor:pointer;padding:0;}
+.cbg-swatch.on{border-color:var(--green);box-shadow:0 0 0 1px var(--green);}
+.card.tint-mist{background:rgba(238,241,244,.95);}
+.card.tint-sakura{background:rgba(253,241,245,.95);}
+.card.tint-mint{background:rgba(238,250,244,.95);}
+.card.tint-sky{background:rgba(238,246,253,.95);}
+.card.tint-cream{background:rgba(250,245,236,.95);}
+.card.tint-lav{background:rgba(244,241,251,.95);}
+
+body[data-bg="snow"]::before{background-color:#ffffff;background-image:none;}
+body[data-bg="mist"]::before{background-color:#eef1f4;background-image:none;}
+body[data-bg="sakura"]::before{background-color:#fdf1f5;background-image:none;}
+body[data-bg="mint"]::before{background-color:#eefaf4;background-image:none;}
+body[data-bg="sky"]::before{background-color:#eef6fd;background-image:none;}
+body[data-bg="cream"]::before{background-color:#faf5ec;background-image:none;}
+body[data-bg="lav"]::before{background-color:#f4f1fb;background-image:none;}
+body[data-bg="lines-h"]::before{background-color:#f7f8fa;background-image:repeating-linear-gradient(0deg, transparent 0 13px, rgba(13,32,45,.05) 14px);}
+body[data-bg="lines-v"]::before{background-color:#f7f8fa;background-image:repeating-linear-gradient(90deg, transparent 0 13px, rgba(13,32,45,.05) 14px);}
+body[data-bg="diag"]::before{background-color:#f7f8fa;background-image:repeating-linear-gradient(45deg, rgba(13,32,45,.05) 0 1px, transparent 1px 11px);}
+body[data-bg="grid"]::before{background-color:#f7f8fa;background-image:repeating-linear-gradient(0deg, transparent 0 19px, rgba(13,32,45,.05) 20px),repeating-linear-gradient(90deg, transparent 0 19px, rgba(13,32,45,.05) 20px);}
+body[data-bg="dots"]::before{background-color:#f7f8fa;background-image:radial-gradient(rgba(13,32,45,.09) 1.2px, transparent 1.3px);background-size:16px 16px;}
+body[data-bg="waves"]::before{background-color:#f7f8fa;background-image:radial-gradient(circle at 0 0, rgba(13,32,45,.055) 2px, transparent 2.5px),radial-gradient(circle at 16px 16px, rgba(13,32,45,.055) 2px, transparent 2.5px);background-size:32px 32px;}
+body[data-bg="cross"]::before{background-color:#f7f8fa;background-image:repeating-linear-gradient(45deg, rgba(13,32,45,.045) 0 1px, transparent 1px 12px),repeating-linear-gradient(-45deg, rgba(13,32,45,.045) 0 1px, transparent 1px 12px);}
+
 .about-line{font-size:13px;color:var(--sub);margin-bottom:14px;}
 .about-k{font-size:11px;color:var(--weak);letter-spacing:.1em;margin-bottom:8px;}
 .changelog{list-style:none;}
@@ -188,8 +227,8 @@ body{
 }
 .day.blank{cursor:default;}
 .day.today{border:1px solid var(--green);color:var(--green);font-weight:600;}
-.day .mark{width:4px;height:4px;border-radius:50%;background:transparent;}
-.day.has .mark{background:var(--blue);box-shadow:0 0 6px rgba(11,142,214,.5);}
+.day .mark{font-size:10px;line-height:1;font-weight:600;color:transparent;}
+.day.has .mark{color:var(--blue);text-shadow:0 0 8px rgba(11,142,214,.45);}
 .day:active{background:rgba(13,32,45,.04);}
 
 
@@ -311,6 +350,13 @@ body{padding:6px 2px 18px;}
 .egg-emoji{font-size:46px;line-height:1;margin-bottom:14px;}
 .egg-title{font-size:18px;font-weight:600;color:var(--ink);letter-spacing:.04em;}
 .egg-msg{margin:10px 0 24px;font-size:13.5px;color:var(--sub);line-height:1.7;}
+/* 记录鼓励 */
+@keyframes praisePulse{0%,100%{box-shadow:0 16px 44px rgba(13,32,45,.16),0 0 70px rgba(244,181,201,.42);}50%{box-shadow:0 16px 44px rgba(13,32,45,.2),0 0 100px rgba(244,181,201,.62);}}
+.praise{position:fixed;inset:0;z-index:92;display:flex;align-items:center;justify-content:center;background:rgba(13,32,45,.16);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .28s;}
+.praise.open{opacity:1;pointer-events:auto;}
+.praise-inner{font-size:54px;font-weight:800;letter-spacing:.08em;padding:26px 52px;border-radius:999px;color:#e35d7f;background:linear-gradient(160deg,#fff 0%,#fdf1f5 55%,#eaf6fb 100%);transform:scale(.82);transition:transform .34s cubic-bezier(.34,1.56,.64,1);animation:praisePulse 1.3s ease-in-out infinite;}
+.praise.open .praise-inner{transform:scale(1);}
+
 .egg-btn{width:100%;}
 
 </style>
@@ -331,7 +377,7 @@ body{padding:6px 2px 18px;}
   </section>
 
   <!-- 目标：一小时十公里 -->
-  <section class="card goal">
+  <section class="card goal" id="goalCard">
     <div class="goal-head">
       <span class="kicker">目标 · 一小时十公里</span>
       <div class="goal-head-right">
@@ -357,7 +403,7 @@ body{padding:6px 2px 18px;}
   <button class="record-btn" id="recordBtn">&#65291; 记录一次</button>
 
   <!-- 统计 -->
-  <section class="card">
+  <section class="card" id="statCard">
     <div class="stats">
       <div class="stat">
         <div class="num mono" id="statDist">0.00<small>km</small></div>
@@ -391,7 +437,7 @@ body{padding:6px 2px 18px;}
   </section>
 
   <!-- 日历 -->
-  <section class="card cal">
+  <section class="card cal" id="calCard">
     <div class="cal-head">
       <button class="cal-title" id="calTitle" aria-label="跳转月份"></button>
       <div class="cal-nav">
@@ -542,7 +588,15 @@ body{padding:6px 2px 18px;}
     </div>
     <button class="sheet-close" id="menuClose" aria-label="关闭">&#215;</button>
   </div>
-  <div class="menu-list">
+    <div class="bg-sec">
+    <div class="bg-lbl">背景</div>
+    <div class="bg-row" id="bgRow"></div>
+  </div>
+  <div class="cardbg-sec">
+    <div class="bg-lbl">卡片配色</div>
+    <div id="cardBgRows"></div>
+  </div>
+<div class="menu-list">
     <button class="menu-item" id="menuCheckUpdate"><span>检查更新</span><span class="arrow">&#8250;</span></button>
     <button class="menu-item" id="menuBackup"><span>备份存档</span><span class="arrow">&#8250;</span></button>
     <button class="menu-item" id="menuExport"><span>导出数据（JSON）</span><span class="arrow">&#8250;</span></button>
@@ -594,6 +648,11 @@ body{padding:6px 2px 18px;}
   </div>
 </div>
 
+<!-- 记录鼓励 -->
+<div class="praise" id="praise" aria-hidden="true">
+  <div class="praise-inner">强！</div>
+</div>
+
 <div class="toast" id="toast"></div>
 <input type="file" id="importFile" accept="application/json,.json,text/plain" style="display:none">
 
@@ -629,8 +688,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.0.18';
+var APP_VERSION = '1.0.19';
 var APP_CHANGELOG = [
+  'v1.0.19 · 记录完成弹出「强！」鼓励；日历跑步日改为「强」字；菜单新增背景选择与卡片配色',
   'v1.0.18 · 下载完成提示带上新版本号',
   'v1.0.17 · 修复在线更新下载完成后闪退：进度通知缺少小图标导致系统崩溃，已补上并加固',
   'v1.0.16 · 在线更新防重复触发：下载/安装进行中再点检查更新不会重复下载',
@@ -938,6 +998,7 @@ function renderCal(){
     num.textContent = d;
     var mark = document.createElement('span');
     mark.className = 'mark';
+    if(byDate[date]) mark.textContent = '强';
     cell.appendChild(num);
     cell.appendChild(mark);
     cell.addEventListener('click', (function(date){ return function(){ openDetail(date); }; })(date));
@@ -1100,6 +1161,7 @@ function saveRecord(){
     toast('已更新');
   }else{
     records.push(rec);
+    praise();
     toast('已记录 · ' + rec.distance.toFixed(2) + ' km');
   }
   save();
@@ -1188,7 +1250,126 @@ function toast(msg){
   toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 1800);
 }
 
+/* ---------- 记录鼓励 ---------- */
+var praiseTimer = null;
+function praise(){
+  var el = $("praise");
+  el.classList.add("open");
+  clearTimeout(praiseTimer);
+  praiseTimer = setTimeout(function(){ el.classList.remove("open"); }, 1400);
+}
+
+
+/* ---------- 背景选择 ---------- */
+var BG_KEY = 'hakone_bg_v1';
+var BGS = [
+  { id:'default', name:'默认', color:'#f6f8fa', image:'radial-gradient(70% 40% at 50% 0%, rgba(10,168,122,.10), transparent 62%), radial-gradient(65% 45% at 50% 100%, rgba(11,142,214,.10), transparent 62%), repeating-linear-gradient(0deg, transparent 0 43px, rgba(13,32,45,.035) 44px), repeating-linear-gradient(90deg, transparent 0 43px, rgba(13,32,45,.035) 44px)', size:'auto' },
+  { id:'snow', name:'晴空白', color:'#ffffff', image:'none', size:'auto' },
+  { id:'mist', name:'雾灰', color:'#eef1f4', image:'none', size:'auto' },
+  { id:'sakura', name:'樱花粉', color:'#fdf1f5', image:'none', size:'auto' },
+  { id:'mint', name:'薄荷绿', color:'#eefaf4', image:'none', size:'auto' },
+  { id:'sky', name:'晴空蓝', color:'#eef6fd', image:'none', size:'auto' },
+  { id:'cream', name:'暖米', color:'#faf5ec', image:'none', size:'auto' },
+  { id:'lav', name:'淡紫', color:'#f4f1fb', image:'none', size:'auto' },
+  { id:'lines-h', name:'横线', color:'#f7f8fa', image:'repeating-linear-gradient(0deg, transparent 0 13px, rgba(13,32,45,.05) 14px)', size:'auto' },
+  { id:'lines-v', name:'竖线', color:'#f7f8fa', image:'repeating-linear-gradient(90deg, transparent 0 13px, rgba(13,32,45,.05) 14px)', size:'auto' },
+  { id:'diag', name:'斜纹', color:'#f7f8fa', image:'repeating-linear-gradient(45deg, rgba(13,32,45,.05) 0 1px, transparent 1px 11px)', size:'auto' },
+  { id:'grid', name:'网格', color:'#f7f8fa', image:'repeating-linear-gradient(0deg, transparent 0 19px, rgba(13,32,45,.05) 20px), repeating-linear-gradient(90deg, transparent 0 19px, rgba(13,32,45,.05) 20px)', size:'auto' },
+  { id:'dots', name:'圆点', color:'#f7f8fa', image:'radial-gradient(rgba(13,32,45,.09) 1.2px, transparent 1.3px)', size:'16px 16px' },
+  { id:'waves', name:'波浪', color:'#f7f8fa', image:'radial-gradient(circle at 0 0, rgba(13,32,45,.055) 2px, transparent 2.5px), radial-gradient(circle at 16px 16px, rgba(13,32,45,.055) 2px, transparent 2.5px)', size:'32px 32px' },
+  { id:'cross', name:'格纹', color:'#f7f8fa', image:'repeating-linear-gradient(45deg, rgba(13,32,45,.045) 0 1px, transparent 1px 12px), repeating-linear-gradient(-45deg, rgba(13,32,45,.045) 0 1px, transparent 1px 12px)', size:'auto' }
+];
+function applyBg(id){
+  if(id === 'default') document.body.removeAttribute('data-bg');
+  else document.body.setAttribute('data-bg', id);
+  try{ localStorage.setItem(BG_KEY, id); }catch(e){}
+  renderBgRow(id);
+}
+function renderBgRow(active){
+  var row = $('bgRow');
+  if(!row) return;
+  row.innerHTML = '';
+  BGS.forEach(function(b){
+    var s = document.createElement('button');
+    s.type = 'button';
+    s.className = 'bg-swatch' + (b.id === active ? ' on' : '');
+    s.title = b.name;
+    s.setAttribute('aria-label', '背景：' + b.name);
+    s.style.backgroundColor = b.color;
+    s.style.backgroundImage = b.image;
+    s.style.backgroundSize = b.size;
+    s.addEventListener('click', function(){ applyBg(b.id); });
+    row.appendChild(s);
+  });
+}
+
+
+
+/* ---------- 卡片配色 ---------- */
+var CARD_BG_KEY = 'hakone_cardbg_v1';
+var CARD_IDS = [
+  { id:'goal', label:'目标', el:'goalCard' },
+  { id:'stat', label:'统计', el:'statCard' },
+  { id:'cal', label:'日历', el:'calCard' }
+];
+var CARD_TINTS = [
+  { id:'default', name:'默认', css:'rgba(255,255,255,.95)' },
+  { id:'mist', name:'雾灰', css:'rgba(238,241,244,.95)' },
+  { id:'sakura', name:'樱花粉', css:'rgba(253,241,245,.95)' },
+  { id:'mint', name:'薄荷绿', css:'rgba(238,250,244,.95)' },
+  { id:'sky', name:'晴空蓝', css:'rgba(238,246,253,.95)' },
+  { id:'cream', name:'暖米', css:'rgba(250,245,236,.95)' },
+  { id:'lav', name:'淡紫', css:'rgba(244,241,251,.95)' }
+];
+var cardBg = loadCardBg();
+function loadCardBg(){
+  try{ var o = JSON.parse(localStorage.getItem(CARD_BG_KEY) || ''); if(o && typeof o === 'object') return o; }catch(e){}
+  return {};
+}
+function saveCardBg(){ try{ localStorage.setItem(CARD_BG_KEY, JSON.stringify(cardBg)); }catch(e){} }
+function applyCardTint(cardId, tintId){
+  var info = null;
+  CARD_IDS.forEach(function(x){ if(x.id === cardId) info = x; });
+  if(!info) return;
+  var el = $(info.el);
+  if(!el) return;
+  CARD_TINTS.forEach(function(t){ el.classList.remove('tint-' + t.id); });
+  if(tintId !== 'default') el.classList.add('tint-' + tintId);
+  cardBg[cardId] = tintId;
+  saveCardBg();
+  renderCardBgRows();
+}
+function renderCardBgRows(){
+  var wrap = $('cardBgRows');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  CARD_IDS.forEach(function(info){
+    var row = document.createElement('div');
+    row.className = 'cbg-row';
+    var lab = document.createElement('span');
+    lab.className = 'cbg-label';
+    lab.textContent = info.label;
+    var sw = document.createElement('div');
+    sw.className = 'cbg-swatches';
+    var active = cardBg[info.id] || 'default';
+    CARD_TINTS.forEach(function(t){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cbg-swatch' + (t.id === active ? ' on' : '');
+      b.title = t.name;
+      b.style.backgroundColor = t.css;
+      b.addEventListener('click', function(){ applyCardTint(info.id, t.id); });
+      sw.appendChild(b);
+    });
+    row.appendChild(lab);
+    row.appendChild(sw);
+    wrap.appendChild(row);
+  });
+}
+
 /* ---------- 事件 ---------- */
+
+
 function bind(id, evt, fn){ $(id).addEventListener(evt, fn); }
 
 bind('recordBtn', 'click', openRecord);
@@ -1199,6 +1380,7 @@ bind('detailClose', 'click', closeSheets);
 bind('detailDone', 'click', closeSheets);
 bind('confirmCancel', 'click', closeSheets);
 bind('confirmOk', 'click', doDelete);
+bind('praise', 'click', function(){ $('praise').classList.remove('open'); });
 bind('overlay', 'click', closeSheets);
 bind('fNow', 'click', function(){ $('fTime').value = nowLocalValue(); });
 bind('calTitle', 'click', openJump);
@@ -1377,6 +1559,15 @@ bind('aboutDone', 'click', closeSheets);
   var now = new Date();
   calCursor = new Date(now.getFullYear(), now.getMonth(), 1);
   $('menuVer').textContent = '版本 v' + APP_VERSION;
+  var savedBg = 'default';
+  try{ savedBg = localStorage.getItem(BG_KEY) || 'default'; }catch(e){}
+  if(savedBg !== 'default') document.body.setAttribute('data-bg', savedBg);
+  renderBgRow(savedBg);
+  CARD_IDS.forEach(function(info){
+    var t = cardBg[info.id] || 'default';
+    if(t !== 'default'){ var el = $(info.el); if(el) el.classList.add('tint-' + t); }
+  });
+  renderCardBgRows();
   renderQuote();
   refreshAll();
   checkEggs();

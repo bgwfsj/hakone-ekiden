@@ -141,8 +141,13 @@ async function main(){
   const bestP = await ev("document.querySelector('#bestPace').textContent");
   console.log('最长距离: ' + bestD + ' | 最快配速: ' + bestP);
   const Q = String.fromCharCode(34);
-  const expD = ' 6.10 km ·  5\'59' + Q + ' · 11月16日';
-  const expP = ' 4.20 km ·  5\'57' + Q + ' · 10月19日';
+  const nowD = new Date();
+  const fmtCN = d => (d.getMonth()+1) + '月' + d.getDate() + '日';
+  const dM2 = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate()-2);
+  const dM30 = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate()-30);
+  const expD = ' 6.10 km ·  5\'59' + Q + ' · ' + fmtCN(dM2);
+
+  const expP = ' 4.20 km ·  5\'57' + Q + ' · ' + fmtCN(dM30);
   if (bestD !== expD) throw new Error('最长距离错误: ' + bestD + '，应为 ' + expD);
   if (bestP !== expP) throw new Error('最快配速错误: ' + bestP + '，应为 ' + expP);
   await shot('1_home');
@@ -199,7 +204,7 @@ async function main(){
   const menuVer = await ev("document.getElementById('menuVer').textContent");
   console.log('菜单打开: ' + menuOpen + ' 版本: ' + menuVer);
   if (!menuOpen) throw new Error('菜单未打开');
-  if (menuVer !== '版本 v1.0.18') throw new Error('菜单版本号错误: ' + menuVer);
+  if (menuVer !== '版本 v1.0.19') throw new Error('菜单版本号错误: ' + menuVer);
   const hasExport = await ev("document.getElementById('menuExport') !== null");
   const hasImport = await ev("document.getElementById('menuImport') !== null");
   const hasDiag = await ev("document.getElementById('menuDiag') !== null");
@@ -211,8 +216,8 @@ async function main(){
   const clCount = await ev("document.querySelectorAll('#changelog li').length");
   console.log('关于打开: ' + aboutOpen + ' 版本: ' + aboutVer + ' 更新记录: ' + clCount);
   if (!aboutOpen) throw new Error('关于未打开');
-  if (aboutVer !== 'v1.0.18') throw new Error('关于版本号错误: ' + aboutVer);
-  if (clCount !== 19) throw new Error('更新记录应为 19 条');
+  if (aboutVer !== 'v1.0.19') throw new Error('关于版本号错误: ' + aboutVer);
+  if (clCount !== 20) throw new Error('更新记录应为 19 条');
   await ev("document.getElementById('aboutDone').click()");
   await ev("document.getElementById('menuBtn').click()");
   await ev("document.getElementById('menuCheckUpdate').click()");

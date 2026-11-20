@@ -23,7 +23,7 @@
   </section>
 
   <!-- 目标：一小时十公里 -->
-  <section class="card goal">
+  <section class="card goal" id="goalCard">
     <div class="goal-head">
       <span class="kicker">目标 · 一小时十公里</span>
       <div class="goal-head-right">
@@ -49,7 +49,7 @@
   <button class="record-btn" id="recordBtn">&#65291; 记录一次</button>
 
   <!-- 统计 -->
-  <section class="card">
+  <section class="card" id="statCard">
     <div class="stats">
       <div class="stat">
         <div class="num mono" id="statDist">0.00<small>km</small></div>
@@ -83,7 +83,7 @@
   </section>
 
   <!-- 日历 -->
-  <section class="card cal">
+  <section class="card cal" id="calCard">
     <div class="cal-head">
       <button class="cal-title" id="calTitle" aria-label="跳转月份"></button>
       <div class="cal-nav">
@@ -234,7 +234,15 @@
     </div>
     <button class="sheet-close" id="menuClose" aria-label="关闭">&#215;</button>
   </div>
-  <div class="menu-list">
+    <div class="bg-sec">
+    <div class="bg-lbl">背景</div>
+    <div class="bg-row" id="bgRow"></div>
+  </div>
+  <div class="cardbg-sec">
+    <div class="bg-lbl">卡片配色</div>
+    <div id="cardBgRows"></div>
+  </div>
+<div class="menu-list">
     <button class="menu-item" id="menuCheckUpdate"><span>检查更新</span><span class="arrow">&#8250;</span></button>
     <button class="menu-item" id="menuBackup"><span>备份存档</span><span class="arrow">&#8250;</span></button>
     <button class="menu-item" id="menuExport"><span>导出数据（JSON）</span><span class="arrow">&#8250;</span></button>
@@ -284,6 +292,11 @@
     <div class="egg-msg" id="eggMsg"></div>
     <button class="btn primary egg-btn" id="eggOk">收下</button>
   </div>
+</div>
+
+<!-- 记录鼓励 -->
+<div class="praise" id="praise" aria-hidden="true">
+  <div class="praise-inner">强！</div>
 </div>
 
 <div class="toast" id="toast"></div>
