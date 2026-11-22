@@ -29,8 +29,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.0.20';
+var APP_VERSION = '1.0.21';
 var APP_CHANGELOG = [
+  'v1.0.21 · 记录完成弹出击掌庆祝（屏幕晃动＋礼花）；记录表单新增距离/时长/感受预选值，可在菜单修改；距离时长默认显示 0',
   'v1.0.20 · 背景与卡片配色新增 6 种舒适绿色（浅草绿/抹茶绿/鼠尾草绿/苔绿/海沫绿/青瓷绿）',
   'v1.0.19 · 记录完成弹出「强！」鼓励；日历跑步日改为「强」字；菜单新增背景选择与卡片配色',
   'v1.0.18 · 下载完成提示带上新版本号',
@@ -451,11 +452,12 @@ function openRecord(){
   editingId = null;
   $('sheetTitle').textContent = '记录一次';
   $('fTime').value = nowLocalValue();
-  $('fDist').value = '';
-  $('fMin').value = '';
-  $('fSec').value = '';
+  $('fDist').value = '0';
+  $('fMin').value = '0';
+  $('fSec').value = '0';
   $('fNote').value = '';
   $('noteCount').textContent = '0/100';
+  renderPresetChips();
   updatePace();
   openSheet($('recordSheet'));
 }
@@ -472,6 +474,7 @@ function openEdit(r){
   $('fSec').value = s;
   $('fNote').value = r.note || '';
   $('noteCount').textContent = (r.note || '').length + '/100';
+  renderPresetChips();
   updatePace();
   openSheet($('recordSheet'));
 }
@@ -593,12 +596,37 @@ function toast(msg){
 }
 
 /* ---------- 记录鼓励 ---------- */
-var praiseTimer = null;
 function praise(){
   var el = $("praise");
   el.classList.add("open");
-  clearTimeout(praiseTimer);
-  praiseTimer = setTimeout(function(){ el.classList.remove("open"); }, 1400);
+}
+function celebrate(){
+  document.body.classList.add('shake');
+  setTimeout(function(){ document.body.classList.remove('shake'); }, 750);
+  confettiBurst();
+  var el = $('praise');
+  el.classList.remove('open');
+}
+function confettiBurst(){
+  var colors = ['#ffb3c8','#ffd166','#7bd7b9','#8ecae6','#c8b6ff','#f4a9c8','#a8e6ce','#ffe08a','#f9a8d4'];
+  var host = document.body;
+  for(var i = 0; i < 90; i++){
+    var p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    p.style.left = (Math.random() * 100) + 'vw';
+    p.style.width = (6 + Math.random() * 7) + 'px';
+    p.style.height = (10 + Math.random() * 9) + 'px';
+    p.style.animationDelay = (Math.random() * 0.5) + 's';
+    p.style.animationDuration = (1.7 + Math.random() * 1.3) + 's';
+    p.style.setProperty('--drift', (Math.random() * 160 - 80) + 'px');
+    host.appendChild(p);
+    (function(el){
+      setTimeout(function(){
+        if(el.parentNode) el.parentNode.removeChild(el);
+      }, 3600);
+    })(p);
+  }
 }
 
 
@@ -692,6 +720,7 @@ function applyCardTint(cardId, tintId){
   cardBg[cardId] = tintId;
   saveCardBg();
   renderCardBgRows();
+  renderPresetChips();
 }
 function renderCardBgRows(){
   var wrap = $('cardBgRows');
@@ -721,6 +750,103 @@ function renderCardBgRows(){
   });
 }
 
+/* ---------- 记录预选 ---------- */
+var PRESETS_KEY = 'hakone_presets_v1';
+var PRESET_DEFAULTS = {
+  dist: ['3','5','10'],
+  dur: ['30','45','60'],
+  feel: ['😊 爽','😮‍💨 累','🥱 疲惫','☀️ 太轻松了','🔥 燃起来了']
+};
+var presets = loadPresets();
+function loadPresets(){
+  var o = null;
+  try{ o = JSON.parse(localStorage.getItem(PRESETS_KEY) || ''); }catch(e){}
+  if(!o || typeof o !== 'object'){
+    return JSON.parse(JSON.stringify(PRESET_DEFAULTS));
+  }
+  ['dist','dur','feel'].forEach(function(k){
+    if(!Array.isArray(o[k]) || !o[k].length) o[k] = PRESET_DEFAULTS[k].slice();
+  });
+  return o;
+}
+function savePresets(){ try{ localStorage.setItem(PRESETS_KEY, JSON.stringify(presets)); }catch(e){} }
+function presetChipHtml(kind, val, idx){
+  var unit = kind === 'dist' ? ' km' : (kind === 'dur' ? ' min' : '');
+  return '<button type="button" class="chip preset-chip" data-kind="'+kind+'" data-idx="'+idx+'">'+val+unit+'</button>';
+}
+function renderPresetChips(){
+  var d = $('presetDist'), t = $('presetDur'), f = $('presetFeel');
+  if(d) d.innerHTML = presets.dist.map(function(v,i){ return presetChipHtml('dist', v, i); }).join('');
+  if(t) t.innerHTML = presets.dur.map(function(v,i){ return presetChipHtml('dur', v, i); }).join('');
+  if(f) f.innerHTML = presets.feel.map(function(v,i){ return presetChipHtml('feel', v, i); }).join('');
+}
+function renderPresetSettings(){
+  var wrap = $('presetSettings');
+  if(!wrap) return;
+  var groups = [
+    { key:'dist', label:'距离（km）' },
+    { key:'dur', label:'时长（分钟）' },
+    { key:'feel', label:'感受' }
+  ];
+  var html = '';
+  groups.forEach(function(g){
+    html += '<div class="preset-set-row"><div class="bg-lbl">' + g.label + '</div><div class="preset-set-inputs">';
+    presets[g.key].forEach(function(v, i){
+      html += '<input type="text" class="preset-in" data-key="' + g.key + '" data-idx="' + i + '" value="' + v.replace(/"/g,'&quot;') + '">';
+    });
+    html += '</div></div>';
+  });
+  html += '<button type="button" class="btn primary" id="presetSave">保存预选</button>';
+  wrap.innerHTML = html;
+}
+function applyPresetChip(kind, val){
+  if(kind === 'dist'){
+    var n = parseFloat(val);
+    $('fDist').value = isFinite(n) ? n : '';
+  } else if(kind === 'dur'){
+    var m = parseInt(val, 10);
+    $('fMin').value = isFinite(m) && m >= 0 ? m : '';
+    $('fSec').value = '0';
+  } else if(kind === 'feel'){
+    $('fNote').value = val;
+    $('noteCount').textContent = val.length + '/100';
+  }
+  updatePace();
+}
+function savePresetSettings(){
+  var inputs = document.querySelectorAll('#presetSettings .preset-in');
+  var bad = null;
+  inputs.forEach(function(inp){
+    var key = inp.getAttribute('data-key');
+    var idx = parseInt(inp.getAttribute('data-idx'), 10);
+    var v = inp.value.trim();
+    if(key === 'dist' || key === 'dur'){
+      var n = parseFloat(v);
+      if(!isFinite(n) || n <= 0){ bad = key; return; }
+      presets[key][idx] = String(n);
+    } else {
+      if(!v){ bad = key; return; }
+      presets[key][idx] = v;
+    }
+  });
+  if(bad){ toast('预选值要填有效的正数哦'); return; }
+  savePresets();
+  renderPresetSettings();
+  renderPresetChips();
+  toast('预选值已保存');
+}
+document.addEventListener('click', function(e){
+  var chip = e.target && e.target.closest ? e.target.closest('.preset-chip') : null;
+  if(!chip) return;
+  var kind = chip.getAttribute('data-kind');
+  var idx = parseInt(chip.getAttribute('data-idx'), 10);
+  if(!kind || isNaN(idx) || !presets[kind] || idx >= presets[kind].length) return;
+  applyPresetChip(kind, presets[kind][idx]);
+});
+document.addEventListener('click', function(e){
+  if(e.target && e.target.id === 'presetSave') savePresetSettings();
+});
+
 /* ---------- 事件 ---------- */
 
 
@@ -734,7 +860,7 @@ bind('detailClose', 'click', closeSheets);
 bind('detailDone', 'click', closeSheets);
 bind('confirmCancel', 'click', closeSheets);
 bind('confirmOk', 'click', doDelete);
-bind('praise', 'click', function(){ $('praise').classList.remove('open'); });
+bind('praiseBtn', 'click', function(e){ e.stopPropagation(); celebrate(); });
 bind('overlay', 'click', closeSheets);
 bind('fNow', 'click', function(){ $('fTime').value = nowLocalValue(); });
 bind('calTitle', 'click', openJump);
@@ -877,7 +1003,7 @@ function renderAbout(){
   });
 }
 
-bind('menuBtn', 'click', function(){ openSheet($('menuSheet')); });
+bind('menuBtn', 'click', function(){ renderPresetSettings(); openSheet($('menuSheet')); });
 bind('menuClose', 'click', closeSheets);
 bind('menuCheckUpdate', 'click', function(){ closeSheets(); callNative('checkUpdate'); });
 bind('menuBackup', 'click', function(){ closeSheets(); callNative('backupNow'); });

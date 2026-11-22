@@ -131,6 +131,7 @@
         <input type="number" id="fDist" inputmode="decimal" placeholder="5.00" step="0.01" min="0" max="100">
         <span class="suffix">km</span>
       </div>
+      <div class="preset-row" id="presetDist"></div>
     </div>
     <div class="field">
       <label>时长</label>
@@ -139,6 +140,7 @@
         <span class="colon">:</span>
         <input type="number" id="fSec" inputmode="numeric" placeholder="15" min="0" max="59" aria-label="秒">
       </div>
+      <div class="preset-row" id="presetDur"></div>
     </div>
     <div class="pace-chip" id="paceChip">配速 <span id="paceVal" class="mono">&mdash;</span></div>
     <div class="field">
@@ -147,6 +149,7 @@
         <textarea id="fNote" maxlength="100" rows="3" placeholder="今天跑起来的感觉&hellip;&hellip;"></textarea>
         <span class="counter" id="noteCount">0/100</span>
       </div>
+      <div class="preset-row preset-feel" id="presetFeel"></div>
     </div>
   </div>
   <div class="sheet-foot">
@@ -242,6 +245,11 @@
     <div class="bg-lbl">卡片配色</div>
     <div id="cardBgRows"></div>
   </div>
+
+  <div class="preset-sec">
+    <div class="bg-lbl">记录预选</div>
+    <div id="presetSettings"></div>
+  </div>
 <div class="menu-list">
     <button class="menu-item" id="menuCheckUpdate"><span>检查更新</span><span class="arrow">&#8250;</span></button>
     <button class="menu-item" id="menuBackup"><span>备份存档</span><span class="arrow">&#8250;</span></button>
@@ -296,7 +304,9 @@
 
 <!-- 记录鼓励 -->
 <div class="praise" id="praise" aria-hidden="true">
-  <div class="praise-inner">强！</div>
+  <div class="praise-inner">
+    <button class="praise-btn" id="praiseBtn" type="button" aria-label="击掌庆祝">🖐️</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>

@@ -366,11 +366,26 @@ body{padding:6px 2px 18px;}
 @keyframes praisePulse{0%,100%{box-shadow:0 16px 44px rgba(13,32,45,.16),0 0 70px rgba(244,181,201,.42);}50%{box-shadow:0 16px 44px rgba(13,32,45,.2),0 0 100px rgba(244,181,201,.62);}}
 .praise{position:fixed;inset:0;z-index:92;display:flex;align-items:center;justify-content:center;background:rgba(13,32,45,.16);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .28s;}
 .praise.open{opacity:1;pointer-events:auto;}
-.praise-inner{font-size:54px;font-weight:800;letter-spacing:.08em;padding:26px 52px;border-radius:999px;color:#e35d7f;background:linear-gradient(160deg,#fff 0%,#fdf1f5 55%,#eaf6fb 100%);transform:scale(.82);transition:transform .34s cubic-bezier(.34,1.56,.64,1);animation:praisePulse 1.3s ease-in-out infinite;}
+.praise-inner{display:flex;flex-direction:column;align-items:center;padding:22px;border-radius:999px;color:#e35d7f;background:linear-gradient(160deg,#fff 0%,#fdf1f5 55%,#eaf6fb 100%);transform:scale(.82);transition:transform .34s cubic-bezier(.34,1.56,.64,1);animation:praisePulse 1.3s ease-in-out infinite;}
+.praise-btn{width:130px;height:130px;border:none;background:transparent;font-size:76px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .16s ease;-webkit-tap-highlight-color:transparent;}
+.praise-btn:active{transform:scale(.86);}
 .praise.open .praise-inner{transform:scale(1);}
+body.shake{animation:screenShake .7s cubic-bezier(.36,.07,.19,.97);}
+@keyframes screenShake{10%,90%{transform:translateX(-2px);}20%,80%{transform:translateX(5px);}30%,50%,70%{transform:translateX(-8px);}40%,60%{transform:translateX(8px);}}
+.confetti-piece{position:fixed;top:-20px;z-index:120;border-radius:3px;opacity:0;pointer-events:none;animation:confettiFall 2.2s ease-in forwards;}
+@keyframes confettiFall{0%{transform:translate(0,0) rotate(0deg);opacity:1;}100%{transform:translate(var(--drift,0),110vh) rotate(720deg);opacity:.55;}}
 
 .egg-btn{width:100%;}
-
+.preset-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.preset-row .chip{font-size:12px;padding:6px 14px;background:#f7f9fb;}
+.preset-row .chip:active{transform:scale(.94);}
+.preset-sec{padding:4px 4px 14px;border-bottom:1px solid var(--line-soft);margin-bottom:6px;}
+.preset-set-row{margin-bottom:12px;}
+.preset-set-row .bg-lbl{margin-bottom:8px;}
+.preset-set-inputs{display:flex;gap:8px;flex-wrap:wrap;}
+.preset-in{flex:1;min-width:64px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 12px;font-size:14px;color:var(--ink);}
+.preset-in:focus{outline:none;border-color:rgba(10,168,122,.45);}
+#presetSettings .btn{width:100%;margin-top:4px;}
 </style>
 </head>
 <body>
@@ -497,6 +512,7 @@ body{padding:6px 2px 18px;}
         <input type="number" id="fDist" inputmode="decimal" placeholder="5.00" step="0.01" min="0" max="100">
         <span class="suffix">km</span>
       </div>
+      <div class="preset-row" id="presetDist"></div>
     </div>
     <div class="field">
       <label>时长</label>
@@ -505,6 +521,7 @@ body{padding:6px 2px 18px;}
         <span class="colon">:</span>
         <input type="number" id="fSec" inputmode="numeric" placeholder="15" min="0" max="59" aria-label="秒">
       </div>
+      <div class="preset-row" id="presetDur"></div>
     </div>
     <div class="pace-chip" id="paceChip">配速 <span id="paceVal" class="mono">&mdash;</span></div>
     <div class="field">
@@ -513,6 +530,7 @@ body{padding:6px 2px 18px;}
         <textarea id="fNote" maxlength="100" rows="3" placeholder="今天跑起来的感觉&hellip;&hellip;"></textarea>
         <span class="counter" id="noteCount">0/100</span>
       </div>
+      <div class="preset-row preset-feel" id="presetFeel"></div>
     </div>
   </div>
   <div class="sheet-foot">
@@ -608,6 +626,11 @@ body{padding:6px 2px 18px;}
     <div class="bg-lbl">卡片配色</div>
     <div id="cardBgRows"></div>
   </div>
+
+  <div class="preset-sec">
+    <div class="bg-lbl">记录预选</div>
+    <div id="presetSettings"></div>
+  </div>
 <div class="menu-list">
     <button class="menu-item" id="menuCheckUpdate"><span>检查更新</span><span class="arrow">&#8250;</span></button>
     <button class="menu-item" id="menuBackup"><span>备份存档</span><span class="arrow">&#8250;</span></button>
@@ -662,7 +685,9 @@ body{padding:6px 2px 18px;}
 
 <!-- 记录鼓励 -->
 <div class="praise" id="praise" aria-hidden="true">
-  <div class="praise-inner">强！</div>
+  <div class="praise-inner">
+    <button class="praise-btn" id="praiseBtn" type="button" aria-label="击掌庆祝">🖐️</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -700,8 +725,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.0.20';
+var APP_VERSION = '1.0.21';
 var APP_CHANGELOG = [
+  'v1.0.21 · 记录完成弹出击掌庆祝（屏幕晃动＋礼花）；记录表单新增距离/时长/感受预选值，可在菜单修改；距离时长默认显示 0',
   'v1.0.20 · 背景与卡片配色新增 6 种舒适绿色（浅草绿/抹茶绿/鼠尾草绿/苔绿/海沫绿/青瓷绿）',
   'v1.0.19 · 记录完成弹出「强！」鼓励；日历跑步日改为「强」字；菜单新增背景选择与卡片配色',
   'v1.0.18 · 下载完成提示带上新版本号',
@@ -1122,11 +1148,12 @@ function openRecord(){
   editingId = null;
   $('sheetTitle').textContent = '记录一次';
   $('fTime').value = nowLocalValue();
-  $('fDist').value = '';
-  $('fMin').value = '';
-  $('fSec').value = '';
+  $('fDist').value = '0';
+  $('fMin').value = '0';
+  $('fSec').value = '0';
   $('fNote').value = '';
   $('noteCount').textContent = '0/100';
+  renderPresetChips();
   updatePace();
   openSheet($('recordSheet'));
 }
@@ -1143,6 +1170,7 @@ function openEdit(r){
   $('fSec').value = s;
   $('fNote').value = r.note || '';
   $('noteCount').textContent = (r.note || '').length + '/100';
+  renderPresetChips();
   updatePace();
   openSheet($('recordSheet'));
 }
@@ -1264,12 +1292,37 @@ function toast(msg){
 }
 
 /* ---------- 记录鼓励 ---------- */
-var praiseTimer = null;
 function praise(){
   var el = $("praise");
   el.classList.add("open");
-  clearTimeout(praiseTimer);
-  praiseTimer = setTimeout(function(){ el.classList.remove("open"); }, 1400);
+}
+function celebrate(){
+  document.body.classList.add('shake');
+  setTimeout(function(){ document.body.classList.remove('shake'); }, 750);
+  confettiBurst();
+  var el = $('praise');
+  el.classList.remove('open');
+}
+function confettiBurst(){
+  var colors = ['#ffb3c8','#ffd166','#7bd7b9','#8ecae6','#c8b6ff','#f4a9c8','#a8e6ce','#ffe08a','#f9a8d4'];
+  var host = document.body;
+  for(var i = 0; i < 90; i++){
+    var p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    p.style.left = (Math.random() * 100) + 'vw';
+    p.style.width = (6 + Math.random() * 7) + 'px';
+    p.style.height = (10 + Math.random() * 9) + 'px';
+    p.style.animationDelay = (Math.random() * 0.5) + 's';
+    p.style.animationDuration = (1.7 + Math.random() * 1.3) + 's';
+    p.style.setProperty('--drift', (Math.random() * 160 - 80) + 'px');
+    host.appendChild(p);
+    (function(el){
+      setTimeout(function(){
+        if(el.parentNode) el.parentNode.removeChild(el);
+      }, 3600);
+    })(p);
+  }
 }
 
 
@@ -1363,6 +1416,7 @@ function applyCardTint(cardId, tintId){
   cardBg[cardId] = tintId;
   saveCardBg();
   renderCardBgRows();
+  renderPresetChips();
 }
 function renderCardBgRows(){
   var wrap = $('cardBgRows');
@@ -1392,6 +1446,103 @@ function renderCardBgRows(){
   });
 }
 
+/* ---------- 记录预选 ---------- */
+var PRESETS_KEY = 'hakone_presets_v1';
+var PRESET_DEFAULTS = {
+  dist: ['3','5','10'],
+  dur: ['30','45','60'],
+  feel: ['😊 爽','😮‍💨 累','🥱 疲惫','☀️ 太轻松了','🔥 燃起来了']
+};
+var presets = loadPresets();
+function loadPresets(){
+  var o = null;
+  try{ o = JSON.parse(localStorage.getItem(PRESETS_KEY) || ''); }catch(e){}
+  if(!o || typeof o !== 'object'){
+    return JSON.parse(JSON.stringify(PRESET_DEFAULTS));
+  }
+  ['dist','dur','feel'].forEach(function(k){
+    if(!Array.isArray(o[k]) || !o[k].length) o[k] = PRESET_DEFAULTS[k].slice();
+  });
+  return o;
+}
+function savePresets(){ try{ localStorage.setItem(PRESETS_KEY, JSON.stringify(presets)); }catch(e){} }
+function presetChipHtml(kind, val, idx){
+  var unit = kind === 'dist' ? ' km' : (kind === 'dur' ? ' min' : '');
+  return '<button type="button" class="chip preset-chip" data-kind="'+kind+'" data-idx="'+idx+'">'+val+unit+'</button>';
+}
+function renderPresetChips(){
+  var d = $('presetDist'), t = $('presetDur'), f = $('presetFeel');
+  if(d) d.innerHTML = presets.dist.map(function(v,i){ return presetChipHtml('dist', v, i); }).join('');
+  if(t) t.innerHTML = presets.dur.map(function(v,i){ return presetChipHtml('dur', v, i); }).join('');
+  if(f) f.innerHTML = presets.feel.map(function(v,i){ return presetChipHtml('feel', v, i); }).join('');
+}
+function renderPresetSettings(){
+  var wrap = $('presetSettings');
+  if(!wrap) return;
+  var groups = [
+    { key:'dist', label:'距离（km）' },
+    { key:'dur', label:'时长（分钟）' },
+    { key:'feel', label:'感受' }
+  ];
+  var html = '';
+  groups.forEach(function(g){
+    html += '<div class="preset-set-row"><div class="bg-lbl">' + g.label + '</div><div class="preset-set-inputs">';
+    presets[g.key].forEach(function(v, i){
+      html += '<input type="text" class="preset-in" data-key="' + g.key + '" data-idx="' + i + '" value="' + v.replace(/"/g,'&quot;') + '">';
+    });
+    html += '</div></div>';
+  });
+  html += '<button type="button" class="btn primary" id="presetSave">保存预选</button>';
+  wrap.innerHTML = html;
+}
+function applyPresetChip(kind, val){
+  if(kind === 'dist'){
+    var n = parseFloat(val);
+    $('fDist').value = isFinite(n) ? n : '';
+  } else if(kind === 'dur'){
+    var m = parseInt(val, 10);
+    $('fMin').value = isFinite(m) && m >= 0 ? m : '';
+    $('fSec').value = '0';
+  } else if(kind === 'feel'){
+    $('fNote').value = val;
+    $('noteCount').textContent = val.length + '/100';
+  }
+  updatePace();
+}
+function savePresetSettings(){
+  var inputs = document.querySelectorAll('#presetSettings .preset-in');
+  var bad = null;
+  inputs.forEach(function(inp){
+    var key = inp.getAttribute('data-key');
+    var idx = parseInt(inp.getAttribute('data-idx'), 10);
+    var v = inp.value.trim();
+    if(key === 'dist' || key === 'dur'){
+      var n = parseFloat(v);
+      if(!isFinite(n) || n <= 0){ bad = key; return; }
+      presets[key][idx] = String(n);
+    } else {
+      if(!v){ bad = key; return; }
+      presets[key][idx] = v;
+    }
+  });
+  if(bad){ toast('预选值要填有效的正数哦'); return; }
+  savePresets();
+  renderPresetSettings();
+  renderPresetChips();
+  toast('预选值已保存');
+}
+document.addEventListener('click', function(e){
+  var chip = e.target && e.target.closest ? e.target.closest('.preset-chip') : null;
+  if(!chip) return;
+  var kind = chip.getAttribute('data-kind');
+  var idx = parseInt(chip.getAttribute('data-idx'), 10);
+  if(!kind || isNaN(idx) || !presets[kind] || idx >= presets[kind].length) return;
+  applyPresetChip(kind, presets[kind][idx]);
+});
+document.addEventListener('click', function(e){
+  if(e.target && e.target.id === 'presetSave') savePresetSettings();
+});
+
 /* ---------- 事件 ---------- */
 
 
@@ -1405,7 +1556,7 @@ bind('detailClose', 'click', closeSheets);
 bind('detailDone', 'click', closeSheets);
 bind('confirmCancel', 'click', closeSheets);
 bind('confirmOk', 'click', doDelete);
-bind('praise', 'click', function(){ $('praise').classList.remove('open'); });
+bind('praiseBtn', 'click', function(e){ e.stopPropagation(); celebrate(); });
 bind('overlay', 'click', closeSheets);
 bind('fNow', 'click', function(){ $('fTime').value = nowLocalValue(); });
 bind('calTitle', 'click', openJump);
@@ -1548,7 +1699,7 @@ function renderAbout(){
   });
 }
 
-bind('menuBtn', 'click', function(){ openSheet($('menuSheet')); });
+bind('menuBtn', 'click', function(){ renderPresetSettings(); openSheet($('menuSheet')); });
 bind('menuClose', 'click', closeSheets);
 bind('menuCheckUpdate', 'click', function(){ closeSheets(); callNative('checkUpdate'); });
 bind('menuBackup', 'click', function(){ closeSheets(); callNative('backupNow'); });
