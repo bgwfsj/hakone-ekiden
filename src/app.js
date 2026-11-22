@@ -29,8 +29,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.0.19';
+var APP_VERSION = '1.0.20';
 var APP_CHANGELOG = [
+  'v1.0.20 · 背景与卡片配色新增 6 种舒适绿色（浅草绿/抹茶绿/鼠尾草绿/苔绿/海沫绿/青瓷绿）',
   'v1.0.19 · 记录完成弹出「强！」鼓励；日历跑步日改为「强」字；菜单新增背景选择与卡片配色',
   'v1.0.18 · 下载完成提示带上新版本号',
   'v1.0.17 · 修复在线更新下载完成后闪退：进度通知缺少小图标导致系统崩溃，已补上并加固',
@@ -612,6 +613,12 @@ var BGS = [
   { id:'sky', name:'晴空蓝', color:'#eef6fd', image:'none', size:'auto' },
   { id:'cream', name:'暖米', color:'#faf5ec', image:'none', size:'auto' },
   { id:'lav', name:'淡紫', color:'#f4f1fb', image:'none', size:'auto' },
+  { id:'grass', name:'浅草绿', color:'#e8f5e9', image:'none', size:'auto' },
+  { id:'matcha', name:'抹茶绿', color:'#d8e8d3', image:'none', size:'auto' },
+  { id:'sage', name:'鼠尾草绿', color:'#c5d0b4', image:'none', size:'auto' },
+  { id:'moss', name:'苔绿', color:'#c8e6c9', image:'none', size:'auto' },
+  { id:'seafoam', name:'海沫绿', color:'#b2dfdb', image:'none', size:'auto' },
+  { id:'celadon', name:'青瓷绿', color:'#a8e6ce', image:'none', size:'auto' },
   { id:'lines-h', name:'横线', color:'#f7f8fa', image:'repeating-linear-gradient(0deg, transparent 0 13px, rgba(13,32,45,.05) 14px)', size:'auto' },
   { id:'lines-v', name:'竖线', color:'#f7f8fa', image:'repeating-linear-gradient(90deg, transparent 0 13px, rgba(13,32,45,.05) 14px)', size:'auto' },
   { id:'diag', name:'斜纹', color:'#f7f8fa', image:'repeating-linear-gradient(45deg, rgba(13,32,45,.05) 0 1px, transparent 1px 11px)', size:'auto' },
@@ -660,7 +667,13 @@ var CARD_TINTS = [
   { id:'mint', name:'薄荷绿', css:'rgba(238,250,244,.95)' },
   { id:'sky', name:'晴空蓝', css:'rgba(238,246,253,.95)' },
   { id:'cream', name:'暖米', css:'rgba(250,245,236,.95)' },
-  { id:'lav', name:'淡紫', css:'rgba(244,241,251,.95)' }
+  { id:'lav', name:'淡紫', css:'rgba(244,241,251,.95)' },
+  { id:'grass', name:'浅草绿', css:'rgba(232,245,233,.95)' },
+  { id:'matcha', name:'抹茶绿', css:'rgba(216,232,211,.95)' },
+  { id:'sage', name:'鼠尾草绿', css:'rgba(197,208,180,.95)' },
+  { id:'moss', name:'苔绿', css:'rgba(200,230,201,.95)' },
+  { id:'seafoam', name:'海沫绿', css:'rgba(178,223,219,.95)' },
+  { id:'celadon', name:'青瓷绿', css:'rgba(168,230,206,.95)' }
 ];
 var cardBg = loadCardBg();
 function loadCardBg(){
