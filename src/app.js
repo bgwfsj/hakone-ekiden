@@ -29,8 +29,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.0.21';
+var APP_VERSION = '1.0.22';
 var APP_CHANGELOG = [
+  'v1.0.22 · 菜单新增弹框配色，可统一设置所有弹框背景颜色',
   'v1.0.21 · 记录完成弹出击掌庆祝（屏幕晃动＋礼花）；记录表单新增距离/时长/感受预选值，可在菜单修改；距离时长默认显示 0',
   'v1.0.20 · 背景与卡片配色新增 6 种舒适绿色（浅草绿/抹茶绿/鼠尾草绿/苔绿/海沫绿/青瓷绿）',
   'v1.0.19 · 记录完成弹出「强！」鼓励；日历跑步日改为「强」字；菜单新增背景选择与卡片配色',
@@ -847,6 +848,46 @@ document.addEventListener('click', function(e){
   if(e.target && e.target.id === 'presetSave') savePresetSettings();
 });
 
+/* ---------- 弹框配色 ---------- */
+var SHEET_BG_KEY = 'hakone_sheetbg_v1';
+var SHEET_TINTS = [
+  { id:'default', name:'默认', color:'#ffffff' },
+  { id:'mist', name:'雾灰', color:'#eef1f4' },
+  { id:'sakura', name:'樱花粉', color:'#fdf1f5' },
+  { id:'mint', name:'薄荷绿', color:'#eefaf4' },
+  { id:'sky', name:'晴空蓝', color:'#eef6fd' },
+  { id:'cream', name:'暖米', color:'#faf5ec' },
+  { id:'lav', name:'淡紫', color:'#f4f1fb' },
+  { id:'grass', name:'浅草绿', color:'#e8f5e9' },
+  { id:'matcha', name:'抹茶绿', color:'#d8e8d3' },
+  { id:'sage', name:'鼠尾草绿', color:'#c5d0b4' },
+  { id:'moss', name:'苔绿', color:'#c8e6c9' },
+  { id:'seafoam', name:'海沫绿', color:'#b2dfdb' },
+  { id:'celadon', name:'青瓷绿', color:'#a8e6ce' }
+];
+function applySheetTint(id){
+  var body = document.body;
+  if(id === 'default') body.removeAttribute('data-sheetbg');
+  else body.setAttribute('data-sheetbg', id);
+  try{ localStorage.setItem(SHEET_BG_KEY, id); }catch(e){}
+  renderSheetBgRow(id);
+}
+function renderSheetBgRow(active){
+  var row = $('sheetBgRow');
+  if(!row) return;
+  row.innerHTML = '';
+  SHEET_TINTS.forEach(function(t){
+    var s = document.createElement('button');
+    s.type = 'button';
+    s.className = 'bg-swatch' + (t.id === active ? ' on' : '');
+    s.title = t.name;
+    s.setAttribute('aria-label', '弹框配色：' + t.name);
+    s.style.backgroundColor = t.color;
+    s.addEventListener('click', function(){ applySheetTint(t.id); });
+    row.appendChild(s);
+  });
+}
+
 /* ---------- 事件 ---------- */
 
 
@@ -1003,7 +1044,7 @@ function renderAbout(){
   });
 }
 
-bind('menuBtn', 'click', function(){ renderPresetSettings(); openSheet($('menuSheet')); });
+bind('menuBtn', 'click', function(){ renderPresetSettings(); renderSheetBgRow(localStorage.getItem(SHEET_BG_KEY) || 'default'); openSheet($('menuSheet')); });
 bind('menuClose', 'click', closeSheets);
 bind('menuCheckUpdate', 'click', function(){ closeSheets(); callNative('checkUpdate'); });
 bind('menuBackup', 'click', function(){ closeSheets(); callNative('backupNow'); });
@@ -1048,6 +1089,7 @@ bind('aboutDone', 'click', closeSheets);
     if(t !== 'default'){ var el = $(info.el); if(el) el.classList.add('tint-' + t); }
   });
   renderCardBgRows();
+  try{ var savedSheetBg = localStorage.getItem(SHEET_BG_KEY) || "default"; if(savedSheetBg !== "default") document.body.setAttribute("data-sheetbg", savedSheetBg); }catch(e){}
   renderQuote();
   refreshAll();
   checkEggs();
