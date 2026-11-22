@@ -42,6 +42,11 @@
       <span class="last-val mono" id="goalLastVal">&mdash;</span>
     </div>
     <p class="goal-pred mono" id="goalPred"></p>
+    <div class="cum-row">
+      <span class="cum-lbl">累计距离</span>
+      <div class="cum-bar"><div class="cum-fill" id="goalCumBar"></div></div>
+      <span class="cum-val mono" id="goalCumVal">&mdash;</span>
+    </div>
     <p class="poem" id="goalPoem"></p>
   </section>
 
@@ -79,6 +84,19 @@
         <span class="best-k">最快配速</span>
         <span class="best-v mono" id="bestPace">&mdash;</span>
       </div>
+    </div>
+  </section>
+
+  <!-- 趋势 -->
+  <section class="card trend" id="trendCard">
+    <div class="trend-head"><span class="kicker">趋势</span></div>
+    <div class="trend-sec">
+      <div class="trend-lbl">配速 · 最近 7 次</div>
+      <div class="chart" id="paceChart"></div>
+    </div>
+    <div class="trend-sec">
+      <div class="trend-lbl">月度距离 · 近 6 月</div>
+      <div class="chart" id="monthChart"></div>
     </div>
   </section>
 
