@@ -52,6 +52,17 @@ async function main(){
     fs.writeFileSync(SHOT_DIR + '\\' + name + '.png', Buffer.from(r.result.data, 'base64'));
     console.log('  截图: ' + name + '.png');
   }
+  async function drainEggs(){
+    const titles = [];
+    for (let i = 0; i < 60; i++){
+      const open = await ev("document.getElementById('egg').classList.contains('open')");
+      if (!open) break;
+      titles.push(await ev("document.getElementById('eggTitle').textContent"));
+      await ev("document.getElementById('eggOk').click()");
+      await sleep(150);
+    }
+    return titles;
+  }
 
   await send('Page.enable');
   await send('Runtime.enable');
@@ -152,7 +163,7 @@ async function main(){
   if (bestP !== expP) throw new Error('最快配速错误: ' + bestP + '，应为 ' + expP);
   await shot('1_home');
 
-  console.log('--- 彩蛋：首次 5km / 配速进6 / 累计10km ---');
+  console.log('--- 彩蛋：首次 5km / 配速进6 / 累计10km + 新彩蛋 ---');
   const eggOpen = await ev("document.getElementById('egg').classList.contains('open')");
   const eggT1 = await ev("document.getElementById('eggTitle').textContent");
   console.log('彩蛋弹出: ' + eggOpen + ' 标题: ' + eggT1);
@@ -165,13 +176,15 @@ async function main(){
   const eggT3 = await ev("document.getElementById('eggTitle').textContent");
   if (eggT3 !== '累计 10 公里') throw new Error('第三个彩蛋应为「累计 10 公里」, 实际 ' + eggT3);
   await ev("document.getElementById('eggOk').click()");
-  const eggClosed = await ev("!document.getElementById('egg').classList.contains('open')");
-  console.log('彩蛋已全部收下: ' + eggClosed);
-  if (!eggClosed) throw new Error('彩蛋应全部关闭');
+  const titles1 = await drainEggs();
+  console.log('新彩蛋: ' + titles1.join(' / '));
+  for (const must of ['首次 3 公里','配速进 7','连续跑 30 分钟','首次晨跑','进度过半']) {
+    if (!titles1.includes(must)) throw new Error('缺少新彩蛋「' + must + '」');
+  }
 
   console.log('--- 验证 1km@6分 含金量低(10%)，不改变最佳 ---');
   await ev(`(function(){
-    const recs = JSON.parse(localStorage.getItem('hakone_records_v1'));
+    const o0 = JSON.parse(localStorage.getItem('hakone_records_v1')); const recs = Array.isArray(o0) ? o0 : o0.records;
     const now = new Date();
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate()-1, 7, 0);
     recs.push({ id:'q1k', ts:d.getTime(),
@@ -258,6 +271,11 @@ async function main(){
   console.log('保存后: 上一次=' + goalLast2 + ' 综合=' + goalPctAfter);
   if (goalLast2 !== '52%') throw new Error('保存后上一次应为 52%, 实际 ' + goalLast2);
   if (goalPctAfter !== '61%') throw new Error('保存后综合应仍为 61%');
+  const titlesSave = await drainEggs();
+  console.log('保存后彩蛋: ' + titlesSave.join(' / '));
+  for (const must of ['一周 15 公里','首次夜跑']) {
+    if (!titlesSave.includes(must)) throw new Error('保存后缺少彩蛋「' + must + '」');
+  }
 
   console.log('--- 点今天看详情 ---');
   await ev(`(function(){
@@ -283,7 +301,7 @@ async function main(){
   console.log('确认弹层打开: ' + cOpen);
   if (!cOpen) throw new Error('确认弹层未打开');
   await ev("document.getElementById('confirmOk').click()");
-  const remain = await ev("JSON.parse(localStorage.getItem('hakone_records_v1')).length");
+  const remain = await ev("(function(){ const o0 = JSON.parse(localStorage.getItem('hakone_records_v1')); const r0 = Array.isArray(o0) ? o0 : o0.records; return r0.length; })()");
   const dClosed = await ev("!document.getElementById('detailSheet').classList.contains('open')");
   const cnt4 = await ev("document.querySelector('#statCount').textContent");
   console.log('删除后剩余: ' + remain + ' 弹层已关: ' + dClosed + ' 次数=' + cnt4);
@@ -363,7 +381,7 @@ async function main(){
       { id:'q1', ts:0, distance:9.9, dur:3600 }
     ]};
     window.Hakone.importData(JSON.stringify(payload));
-    const recs = JSON.parse(localStorage.getItem('hakone_records_v1'));
+    const o0 = JSON.parse(localStorage.getItem('hakone_records_v1')); const recs = Array.isArray(o0) ? o0 : o0.records;
     return JSON.stringify({ n: recs.length, hasNew: recs.some(x=>x.id==='imp-new'), dupCount: recs.filter(x=>x.id==='q1').length, note: recs.find(x=>x.id==='imp-new').note });
   })()`);
   console.log('导入结果: ' + imp1);
@@ -375,6 +393,11 @@ async function main(){
   const toastImp = await ev("document.getElementById('toast').textContent");
   console.log('导入 toast: ' + toastImp);
   if (!toastImp.includes('已导入 1')) throw new Error('导入 toast 应为「已导入 1 条记录」');
+  const titlesImp = await drainEggs();
+  console.log('导入后彩蛋: ' + titlesImp.join(' / '));
+  for (const must of ['首次 7 公里','首次 8 公里','连续跑 45 分钟']) {
+    if (!titlesImp.includes(must)) throw new Error('导入后缺少彩蛋「' + must + '」');
+  }
 
   await ev("window.Hakone.importData('not-json')");
   const toastBad = await ev("document.getElementById('toast').textContent");
@@ -388,7 +411,7 @@ async function main(){
 
   console.log('--- 慢跑不归零：3km@30分 → 15% ---');
   await ev(`(function(){
-    const recs = JSON.parse(localStorage.getItem('hakone_records_v1'));
+    const o0 = JSON.parse(localStorage.getItem('hakone_records_v1')); const recs = Array.isArray(o0) ? o0 : o0.records;
     const now = new Date();
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 22, 30, 0);
     recs.push({ id:'qslow', ts:d.getTime(),
@@ -404,7 +427,7 @@ async function main(){
 
   console.log('--- 彩蛋：首次 10km 与达成目标 ---');
   await ev(`(function(){
-    const recs = JSON.parse(localStorage.getItem('hakone_records_v1'));
+    const o0 = JSON.parse(localStorage.getItem('hakone_records_v1')); const recs = Array.isArray(o0) ? o0 : o0.records;
     const now = new Date();
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate()-1, 6, 0, 0);
     recs.push({ id:'qgoal', ts:d.getTime(),
@@ -423,6 +446,8 @@ async function main(){
   console.log('第二个: ' + eg2);
   if (eg2 !== '一小时十公里') throw new Error('第二个应为「一小时十公里」');
   await ev("document.getElementById('eggOk').click()");
+  const titlesGoal = await drainEggs();
+  console.log('10km 后彩蛋: ' + (titlesGoal.length ? titlesGoal.join(' / ') : '(无新彩蛋，均已在前面触发)'));
   await ev("location.reload()");
   await sleep(1200);
   const eggAgain = await ev("!document.getElementById('egg').classList.contains('open')");

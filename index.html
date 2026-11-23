@@ -744,11 +744,20 @@ body[data-sheetbg="celadon"] .sheet{background:rgba(168,230,206,.98);}
 <div class="toast" id="toast"></div>
 <input type="file" id="importFile" accept="application/json,.json,text/plain" style="display:none">
 
+<!-- JS 模块（构建时拼接为单个 <script>） -->
 <script>
 (function(){
 'use strict';
 
-var KEY = 'hakone_records_v1';
+var STORE = {
+  records: 'hakone_records_v1',
+  bg: 'hakone_bg_v1',
+  cardBg: 'hakone_cardbg_v1',
+  presets: 'hakone_presets_v1',
+  sheetBg: 'hakone_sheetbg_v1',
+  eggs: 'hakone_eggs_v1'
+};
+var SCHEMA_VERSION = 2; // 存档结构：v2 = { schema, records }，v1 = 纯数组
 var GOAL_KM = 10;
 var GOAL_PACE = 360; // 6'00"/km，单位秒
 var PACE_FLOOR = 480; // 8'00''/km：配速达成 0% 的锚点
@@ -812,13 +821,16 @@ var deletingId = null;
 /* ---------- 存储 ---------- */
 function load(){
   try{
-    var raw = localStorage.getItem(KEY);
-    var arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr : [];
+    var raw = localStorage.getItem(STORE.records);
+    if(!raw) return [];
+    var parsed = JSON.parse(raw);
+    if(Array.isArray(parsed)) return parsed; // v1：纯数组
+    if(parsed && typeof parsed === 'object' && Array.isArray(parsed.records)) return parsed.records; // v2
+    return [];
   }catch(e){ return []; }
 }
 function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify(records)); }catch(e){}
+  try{ localStorage.setItem(STORE.records, JSON.stringify({ schema: SCHEMA_VERSION, records: records })); }catch(e){}
 }
 
 /* ---------- 数据导入导出 ---------- */
@@ -826,6 +838,7 @@ function exportPayload(){
   return JSON.stringify({
     app: 'hakone-ekiden',
     version: APP_VERSION,
+    schema: SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
     records: records
   });
@@ -1080,27 +1093,43 @@ function renderCal(){
   records.forEach(function(r){ (byDate[r.date] = byDate[r.date] || []).push(r); });
 
   var grid = $('calGrid');
-  grid.innerHTML = '';
-  for(var i = 0; i < offset; i++){
-    var b = document.createElement('div');
-    b.className = 'day blank';
-    grid.appendChild(b);
-  }
-  for(var d = 1; d <= dim; d++){
-    var date = y + '-' + pad(m+1) + '-' + pad(d);
-    var cell = document.createElement('div');
-    cell.className = 'day';
-    if(date === todayStr) cell.classList.add('today');
-    if(byDate[date]) cell.classList.add('has');
-    var num = document.createElement('span');
-    num.textContent = d;
-    var mark = document.createElement('span');
-    mark.className = 'mark';
-    if(byDate[date]) mark.textContent = '强';
-    cell.appendChild(num);
-    cell.appendChild(mark);
-    cell.addEventListener('click', (function(date){ return function(){ openDetail(date); }; })(date));
-    grid.appendChild(cell);
+  var sameMonth = grid.getAttribute('data-ym') === (y + '-' + m);
+  grid.setAttribute('data-ym', y + '-' + m);
+  if(!sameMonth){
+    grid.innerHTML = '';
+    for(var i = 0; i < offset; i++){
+      var b = document.createElement('div');
+      b.className = 'day blank';
+      grid.appendChild(b);
+    }
+    for(var d = 1; d <= dim; d++){
+      var date = y + '-' + pad(m+1) + '-' + pad(d);
+      var cell = document.createElement('div');
+      cell.className = 'day';
+      cell.setAttribute('data-date', date);
+      if(date === todayStr) cell.classList.add('today');
+      if(byDate[date]) cell.classList.add('has');
+      var num = document.createElement('span');
+      num.textContent = d;
+      var mark = document.createElement('span');
+      mark.className = 'mark';
+      if(byDate[date]) mark.textContent = '强';
+      cell.appendChild(num);
+      cell.appendChild(mark);
+      cell.addEventListener('click', (function(date){ return function(){ openDetail(date); }; })(date));
+      grid.appendChild(cell);
+    }
+  } else {
+    var cells = grid.children;
+    for(var k = 0; k < cells.length; k++){
+      var c = cells[k];
+      var dt = c.getAttribute('data-date');
+      if(!dt) continue;
+      c.classList.toggle('today', dt === todayStr);
+      c.classList.toggle('has', !!byDate[dt]);
+      var mk = c.querySelector('.mark');
+      if(mk) mk.textContent = byDate[dt] ? '强' : '';
+    }
   }
 }
 
@@ -1482,7 +1511,6 @@ function confettiBurst(){
 
 
 /* ---------- 背景选择 ---------- */
-var BG_KEY = 'hakone_bg_v1';
 var BGS = [
   { id:'default', name:'默认', color:'#f6f8fa', image:'radial-gradient(70% 40% at 50% 0%, rgba(10,168,122,.10), transparent 62%), radial-gradient(65% 45% at 50% 100%, rgba(11,142,214,.10), transparent 62%), repeating-linear-gradient(0deg, transparent 0 43px, rgba(13,32,45,.035) 44px), repeating-linear-gradient(90deg, transparent 0 43px, rgba(13,32,45,.035) 44px)', size:'auto' },
   { id:'snow', name:'晴空白', color:'#ffffff', image:'none', size:'auto' },
@@ -1509,7 +1537,7 @@ var BGS = [
 function applyBg(id){
   if(id === 'default') document.body.removeAttribute('data-bg');
   else document.body.setAttribute('data-bg', id);
-  try{ localStorage.setItem(BG_KEY, id); }catch(e){}
+  try{ localStorage.setItem(STORE.bg, id); }catch(e){}
   renderBgRow(id);
 }
 function renderBgRow(active){
@@ -1533,7 +1561,6 @@ function renderBgRow(active){
 
 
 /* ---------- 卡片配色 ---------- */
-var CARD_BG_KEY = 'hakone_cardbg_v1';
 var CARD_IDS = [
   { id:'goal', label:'目标', el:'goalCard' },
   { id:'stat', label:'统计', el:'statCard' },
@@ -1557,10 +1584,10 @@ var CARD_TINTS = [
 ];
 var cardBg = loadCardBg();
 function loadCardBg(){
-  try{ var o = JSON.parse(localStorage.getItem(CARD_BG_KEY) || ''); if(o && typeof o === 'object') return o; }catch(e){}
+  try{ var o = JSON.parse(localStorage.getItem(STORE.cardBg) || ''); if(o && typeof o === 'object') return o; }catch(e){}
   return {};
 }
-function saveCardBg(){ try{ localStorage.setItem(CARD_BG_KEY, JSON.stringify(cardBg)); }catch(e){} }
+function saveCardBg(){ try{ localStorage.setItem(STORE.cardBg, JSON.stringify(cardBg)); }catch(e){} }
 function applyCardTint(cardId, tintId){
   var info = null;
   CARD_IDS.forEach(function(x){ if(x.id === cardId) info = x; });
@@ -1603,7 +1630,6 @@ function renderCardBgRows(){
 }
 
 /* ---------- 记录预选 ---------- */
-var PRESETS_KEY = 'hakone_presets_v1';
 var PRESET_DEFAULTS = {
   dist: ['3','5','10'],
   dur: ['30','45','60'],
@@ -1612,7 +1638,7 @@ var PRESET_DEFAULTS = {
 var presets = loadPresets();
 function loadPresets(){
   var o = null;
-  try{ o = JSON.parse(localStorage.getItem(PRESETS_KEY) || ''); }catch(e){}
+  try{ o = JSON.parse(localStorage.getItem(STORE.presets) || ''); }catch(e){}
   if(!o || typeof o !== 'object'){
     return JSON.parse(JSON.stringify(PRESET_DEFAULTS));
   }
@@ -1621,7 +1647,7 @@ function loadPresets(){
   });
   return o;
 }
-function savePresets(){ try{ localStorage.setItem(PRESETS_KEY, JSON.stringify(presets)); }catch(e){} }
+function savePresets(){ try{ localStorage.setItem(STORE.presets, JSON.stringify(presets)); }catch(e){} }
 function presetChipHtml(kind, val, idx){
   var unit = kind === 'dist' ? ' km' : (kind === 'dur' ? ' min' : '');
   return '<button type="button" class="chip preset-chip" data-kind="'+kind+'" data-idx="'+idx+'">'+val+unit+'</button>';
@@ -1700,7 +1726,6 @@ document.addEventListener('click', function(e){
 });
 
 /* ---------- 弹框配色 ---------- */
-var SHEET_BG_KEY = 'hakone_sheetbg_v1';
 var SHEET_TINTS = [
   { id:'default', name:'默认', color:'#ffffff' },
   { id:'mist', name:'雾灰', color:'#eef1f4' },
@@ -1720,7 +1745,7 @@ function applySheetTint(id){
   var body = document.body;
   if(id === 'default') body.removeAttribute('data-sheetbg');
   else body.setAttribute('data-sheetbg', id);
-  try{ localStorage.setItem(SHEET_BG_KEY, id); }catch(e){}
+  try{ localStorage.setItem(STORE.sheetBg, id); }catch(e){}
   renderSheetBgRow(id);
 }
 function renderSheetBgRow(active){
@@ -1783,7 +1808,6 @@ $('fNote').addEventListener('input', function(){
 });
 
 /* ---------- 彩蛋 ---------- */
-var EGG_KEY = 'hakone_eggs_v1';
 var eggTriggered = loadEggs();
 var eggQueue = [];
 var eggDefs = [
@@ -1794,18 +1818,84 @@ var eggDefs = [
   { id:'total_10k',   emoji:'🌱', title:'累计 10 公里',     msg:'从 0 到 10 公里，每一步都算数。',           cond:function(){ return totalDist() >= 10; } },
   { id:'total_100k',  emoji:'🌟', title:'累计 100 公里',    msg:'100 公里，这是十次十公里的坚持。',         cond:function(){ return totalDist() >= 100; } },
   { id:'count_10',    emoji:'🎽', title:'第 10 次跑步',     msg:'十次了，习惯正在长成。',                    cond:function(){ return records.length >= 10; } },
-  { id:'count_100',   emoji:'🏅', title:'第 100 次跑步',    msg:'一百次，你已经是一个跑者了。',              cond:function(){ return records.length >= 100; } }
+  { id:'count_100',   emoji:'🏅', title:'第 100 次跑步',    msg:'一百次，你已经是一个跑者了。',              cond:function(){ return records.length >= 100; } },
+  // —— 单次里程 ——
+  { id:'first_3k',    emoji:'🐾', title:'首次 3 公里',       msg:'三公里，热身结束，故事才刚刚开始。',          cond:function(){ return records.some(function(r){ return r.distance >= 3; }); } },
+  { id:'first_7k',    emoji:'🏔️', title:'首次 7 公里',       msg:'七公里，越过山丘，还剩三公里。',              cond:function(){ return records.some(function(r){ return r.distance >= 7; }); } },
+  { id:'first_8k',    emoji:'🛤️', title:'首次 8 公里',       msg:'八公里，终点已经看得见轮廓了。',              cond:function(){ return records.some(function(r){ return r.distance >= 8; }); } },
+  // —— 单次配速 ——
+  { id:'first_pace7', emoji:'🌬️', title:'配速进 7',          msg:'七分配，不快，但你已经跑起来了。',            cond:function(){ return records.some(function(r){ return r.distance > 0 && r.dur > 0 && r.dur/r.distance <= 420; }); } },
+  { id:'first_pace5', emoji:'⚡', title:'配速进 5',           msg:'五分配，风会给你让路。',                      cond:function(){ return records.some(function(r){ return r.distance > 0 && r.dur > 0 && r.dur/r.distance <= 300; }); } },
+  // —— 单次时长 ——
+  { id:'first_dur30', emoji:'⏳', title:'连续跑 30 分钟',     msg:'三十分钟，心跳和呼吸找到了同一拍。',          cond:function(){ return records.some(function(r){ return r.dur >= 1800; }); } },
+  { id:'first_dur45', emoji:'🔋', title:'连续跑 45 分钟',     msg:'四十五分钟，一小时没那么远了。',              cond:function(){ return records.some(function(r){ return r.dur >= 2700; }); } },
+  // —— 5km 目标 ——
+  { id:'fivek_sub30', emoji:'🎯', title:'5 公里跑进 30 分钟', msg:'五公里半小时，你和目标打了个平手。',         cond:function(){ return records.some(function(r){ return r.distance >= 4.995 && r.dur > 0 && r.dur/r.distance <= GOAL_PACE; }); } },
+  // —— 累计距离 ——
+  { id:'total_30k',   emoji:'🌿', title:'累计 30 公里',       msg:'三十公里，习惯开始发芽。',                    cond:function(){ return totalDist() >= 30; } },
+  { id:'total_50k',   emoji:'🌳', title:'累计 50 公里',       msg:'五十公里，从 0 到半百，每一步都算数。',       cond:function(){ return totalDist() >= 50; } },
+  { id:'total_200k',  emoji:'🌌', title:'累计 200 公里',      msg:'两百公里，你已经是另一个自己了。',            cond:function(){ return totalDist() >= 200; } },
+  // —— 累计时长 ——
+  { id:'total_10h',   emoji:'⏰', title:'累计 10 小时',       msg:'十小时，时间在你脚下悄悄缩短。',              cond:function(){ return totalDur() >= 36000; } },
+  // —— 次数 ——
+  { id:'count_30',    emoji:'🎖️', title:'第 30 次跑步',      msg:'三十次，跑步变成了日子的一部分。',            cond:function(){ return records.length >= 30; } },
+  { id:'count_50',    emoji:'🔥', title:'第 50 次跑步',      msg:'五十次，风雨无阻，你已经上瘾了。',            cond:function(){ return records.length >= 50; } },
+  // —— 习惯 ——
+  { id:'streak_3',    emoji:'🌤️', title:'连续 3 天',         msg:'三天，一个好习惯正在成形。',                  cond:function(){ return maxStreak() >= 3; } },
+  { id:'streak_7',    emoji:'☀️', title:'连续 7 天',         msg:'连续七天，你已经停不下来了。',                cond:function(){ return maxStreak() >= 7; } },
+  { id:'week_15k',    emoji:'📅', title:'一周 15 公里',      msg:'一周十五公里，周末可以奖励自己了。',          cond:function(){ return maxWeekDist() >= 15; } },
+  // —— 时段 ——
+  { id:'morning_run', emoji:'🌅', title:'首次晨跑',          msg:'清晨的路，只有你和风。',                      cond:function(){ return records.some(function(r){ var h = new Date(r.ts).getHours(); return h >= 6 && h < 9; }); } },
+  { id:'night_run',   emoji:'🌙', title:'首次夜跑',          msg:'路灯亮起时，你还在跑。',                      cond:function(){ return records.some(function(r){ return new Date(r.ts).getHours() >= 20; }); } },
+  // —— 目标 ——
+  { id:'progress_50', emoji:'🌓', title:'进度过半',          msg:'过半了，终点在向你招手。',                    cond:function(){ var b = bestProof(); return !!b && b.pct >= 0.5; } }
 ];
 function loadEggs(){
-  try{ var a = JSON.parse(localStorage.getItem(EGG_KEY)); return Array.isArray(a) ? a : []; }catch(e){ return []; }
+  try{ var a = JSON.parse(localStorage.getItem(STORE.eggs)); return Array.isArray(a) ? a : []; }catch(e){ return []; }
 }
 function saveEggs(){
-  try{ localStorage.setItem(EGG_KEY, JSON.stringify(eggTriggered)); }catch(e){}
+  try{ localStorage.setItem(STORE.eggs, JSON.stringify(eggTriggered)); }catch(e){}
 }
 function totalDist(){
   var s = 0;
   records.forEach(function(r){ s += r.distance; });
   return s;
+}
+function totalDur(){
+  var s = 0;
+  records.forEach(function(r){ s += (r.dur || 0); });
+  return s;
+}
+function maxStreak(){
+  var set = {};
+  records.forEach(function(r){ if(r.date) set[r.date] = true; });
+  var dates = Object.keys(set).sort();
+  if(!dates.length) return 0;
+  var best = 1, cur = 1;
+  for(var i = 1; i < dates.length; i++){
+    var prev = new Date(dates[i-1]);
+    prev.setDate(prev.getDate() + 1);
+    var expect = prev.getFullYear() + '-' + pad(prev.getMonth()+1) + '-' + pad(prev.getDate());
+    if(dates[i] === expect) cur++; else cur = 1;
+    if(cur > best) best = cur;
+  }
+  return best;
+}
+function maxWeekDist(){
+  var map = {};
+  records.forEach(function(r){ if(!r.date || !r.distance) return; map[r.date] = (map[r.date] || 0) + r.distance; });
+  var days = Object.keys(map).sort();
+  var best = 0;
+  for(var i = 0; i < days.length; i++){
+    var sum = 0;
+    for(var j = i; j < days.length; j++){
+      var span = Math.round((new Date(days[j]) - new Date(days[i])) / 86400000);
+      if(span > 6) break;
+      sum += map[days[j]];
+    }
+    if(sum > best) best = sum;
+  }
+  return best;
 }
 function checkEggs(){
   eggDefs.forEach(function(def){
@@ -1895,7 +1985,7 @@ function renderAbout(){
   });
 }
 
-bind('menuBtn', 'click', function(){ renderPresetSettings(); renderSheetBgRow(localStorage.getItem(SHEET_BG_KEY) || 'default'); openSheet($('menuSheet')); });
+bind('menuBtn', 'click', function(){ renderPresetSettings(); renderSheetBgRow(localStorage.getItem(STORE.sheetBg) || 'default'); openSheet($('menuSheet')); });
 bind('menuClose', 'click', closeSheets);
 bind('menuCheckUpdate', 'click', function(){ closeSheets(); callNative('checkUpdate'); });
 bind('menuBackup', 'click', function(){ closeSheets(); callNative('backupNow'); });
@@ -1932,7 +2022,7 @@ bind('aboutDone', 'click', closeSheets);
   calCursor = new Date(now.getFullYear(), now.getMonth(), 1);
   $('menuVer').textContent = '版本 v' + APP_VERSION;
   var savedBg = 'default';
-  try{ savedBg = localStorage.getItem(BG_KEY) || 'default'; }catch(e){}
+  try{ savedBg = localStorage.getItem(STORE.bg) || 'default'; }catch(e){}
   if(savedBg !== 'default') document.body.setAttribute('data-bg', savedBg);
   renderBgRow(savedBg);
   CARD_IDS.forEach(function(info){
@@ -1940,12 +2030,13 @@ bind('aboutDone', 'click', closeSheets);
     if(t !== 'default'){ var el = $(info.el); if(el) el.classList.add('tint-' + t); }
   });
   renderCardBgRows();
-  try{ var savedSheetBg = localStorage.getItem(SHEET_BG_KEY) || "default"; if(savedSheetBg !== "default") document.body.setAttribute("data-sheetbg", savedSheetBg); }catch(e){}
+  try{ var savedSheetBg = localStorage.getItem(STORE.sheetBg) || "default"; if(savedSheetBg !== "default") document.body.setAttribute("data-sheetbg", savedSheetBg); }catch(e){}
   renderQuote();
   refreshAll();
   checkEggs();
 })();
 })();
 </script>
+
 </body>
 </html>

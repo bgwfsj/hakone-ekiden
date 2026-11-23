@@ -20,7 +20,7 @@
 ```
 src/index.html   模板（开发预览直接打开本文件即可）
 src/style.css    样式（airy-minimal-ui 风格）
-src/app.js       业务逻辑
+src/js/          业务逻辑（按领域拆分：core/storage/render/calendar/trend/records/settings/events/eggs/app，构建时拼接）
 build.js         构建脚本（无依赖，node build.js）
 index.html       构建产物：自包含单文件，离线可用
 _qa/cdp_qa.mjs   无头浏览器回归测试（Edge CDP）
