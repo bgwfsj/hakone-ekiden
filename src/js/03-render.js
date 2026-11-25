@@ -80,13 +80,61 @@ function bestProof(){
   return best;
 }
 
-function renderGoal(){
-  var b = bestProof();
-  var pct = b ? b.pct : 0;
-  $('goalBar').style.width = (pct*100) + '%';
-  $('goalPct').textContent = Math.round(pct*100) + '%';
+// 配速环：距离达 8km 视为配速检验达标；配速权重 75% 主导，达成比整体简单
+// 配速达成带超额加成：6'00"=100%，每快 15 秒 +5%（如 5'45" → 105%），不封顶
+function paceRingScore(paceSec){
+  if(paceSec >= PACE_FLOOR) return 0;
+  if(paceSec >= GOAL_PACE) return (PACE_FLOOR - paceSec) / (PACE_FLOOR - GOAL_PACE);
+  return 1 + (GOAL_PACE - paceSec) / 15 * 0.05;
+}
+function paceRingOf(r){
+  if(!r || !r.distance || !r.dur) return 0;
+  var distW8 = Math.min(1, r.distance / GOAL_PACE_KM);
+  return distW8 * (0.25 + 0.75 * paceRingScore(r.dur / r.distance));
+}
+function bestPaceRing(){
+  var best = null;
+  records.forEach(function(r){
+    if(!r.distance || !r.dur) return;
+    var pct = paceRingOf(r);
+    if(!best || pct > best.pct) best = { dist:r.distance, pace:r.dur/r.distance, pct:pct, date:r.date };
+  });
+  return best;
+}
 
-  // 上一次：最近一次跑步的含金量
+// 环形进度：pct 可超过 1（距离环不封顶），环满格、中心显示实际百分比
+// 同心三环：最外=距离(r44)、中间=配速(r36)、最内=整体(r28)
+var RING_C = { dist: 2 * Math.PI * 44, pace: 2 * Math.PI * 36, goal: 2 * Math.PI * 28 };
+function setRing(arcId, pctId, pct, C){
+  var clamped = Math.min(1, pct);
+  $(arcId).style.strokeDasharray = (clamped * C) + ' ' + C;
+  $(pctId).textContent = Math.round(pct * 100) + '%';
+  $(arcId).classList.toggle('done', pct >= 1);
+}
+
+function renderGoal(){
+  // 距离环（最外圈）：最长单次 / 10km，不封顶（超过 10km 继续累积）
+  var maxD = 0, maxDrec = null;
+  records.forEach(function(r){ if(r.distance && r.distance > maxD){ maxD = r.distance; maxDrec = r; } });
+  setRing('ringDistArc', 'ringDistPct', maxD / GOAL_KM, RING_C.dist);
+
+  // 配速环（中间圈）：历史最佳单次的配速含金量（考虑距离）
+  var bp = bestPaceRing();
+  setRing('ringPaceArc', 'ringPacePct', bp ? bp.pct : 0, RING_C.pace);
+
+  // 整体环（最内圈 + 中心）：历史最佳单次含金量（与之前保持一致）
+  var b = bestProof();
+  var goalPct = b ? b.pct : 0;
+  setRing('ringGoalArc', 'ringGoalPct', goalPct, RING_C.goal);
+  $('ringGoalPctSub').textContent = Math.round(goalPct * 100) + '%';
+  $('ringGoalPct').classList.toggle('done', goalPct >= 1);
+
+  // 说明：最长距离 + 最佳配速那次
+  $('ringNote').textContent =
+    (maxDrec ? '最长 ' + maxDrec.distance.toFixed(2) + ' km' : '—') +
+    (bp ? ' · 最佳配速 ' + fmtPace(bp.pace) + ' @ ' + bp.dist.toFixed(2) + ' km' : '');
+
+  // 上一次：最近一次跑步的整体含金量
   var last = null;
   records.forEach(function(r){ if(!last || r.ts > last.ts) last = r; });
   if(last && last.distance && last.dur){
@@ -99,18 +147,16 @@ function renderGoal(){
   }
 
   if(!b){
-    $('goalBest').textContent = '';
     $('goalPred').textContent = '';
     $('goalPoem').textContent = '千里之行，始于足下。';
     return;
   }
   var achieved = b.dist >= GOAL_KM - 0.005 && b.pace <= GOAL_PACE + 0.01;
-  $('goalBest').textContent = '最佳一次 · ' + b.dist.toFixed(2) + ' km · ' + fmtPace(b.pace);
   $('goalPred').textContent = '按此配速，10 km 预计 ' + fmtDuration(Math.round(b.pace * GOAL_KM));
   var poem;
   if(achieved) poem = '一小时十公里，抵达了。风替你欢呼。';
-  else if(pct < 0.25) poem = '路还长，先跑起来。';
-  else if(pct < 0.7) poem = '每一步，都在靠近那一小时。';
+  else if(b.pct < 0.25) poem = '路还长，先跑起来。';
+  else if(b.pct < 0.7) poem = '每一步，都在靠近那一小时。';
   else poem = '快到了，再远一点，再快一点。';
   $('goalPoem').textContent = poem;
 }

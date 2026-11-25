@@ -171,6 +171,27 @@ body[data-bg="cross"]::before{background-color:#f7f8fa;background-image:repeatin
 .info-v{font-size:13px;color:var(--ink);line-height:1.6;}
 .info-eg{margin-top:12px;font-size:11.5px;color:var(--green);background:rgba(10,168,122,.06);border:1px solid rgba(10,168,122,.16);border-radius:10px;padding:8px 12px;text-align:center;}
 .poem{margin-top:10px;font-size:11.5px;color:var(--sub);letter-spacing:.04em;}
+/* ---------- 目标环 ---------- */
+.rings{position:relative;width:176px;height:176px;margin:6px auto 4px;}
+.rings svg{position:absolute;inset:0;width:100%;height:100%;display:block;transform:rotate(-90deg);}
+.ring-track{fill:none;stroke:rgba(13,32,45,.06);stroke-width:6;}
+.ring-arc{fill:none;stroke-width:6;stroke-linecap:round;stroke-dasharray:0 999;transition:stroke-dasharray .6s cubic-bezier(.22,.61,.36,1);}
+#ringDistArc{stroke:var(--blue);}
+#ringPaceArc{stroke:var(--green);}
+#ringGoalArc{stroke:#14919b;}
+.ring-arc.done{stroke:#d9a441;}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;pointer-events:none;}
+.ring-center-val{font-size:27px;font-weight:500;color:var(--ink);letter-spacing:-.02em;line-height:1;}
+.ring-center-val.done{color:#c98a2e;}
+.ring-center-lbl{font-size:10px;color:var(--weak);letter-spacing:.22em;}
+.ring-legend{display:flex;justify-content:center;gap:16px;margin:4px 0 6px;flex-wrap:wrap;}
+.lg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub);}
+.lg b{color:var(--ink);font-weight:500;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto;}
+.d-dist{background:var(--blue);}
+.d-pace{background:var(--green);}
+.d-goal{background:#14919b;}
+.ring-note{font-size:10.5px;color:var(--sub);text-align:center;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 /* ---------- 记录按钮 ---------- */
 .record-btn{

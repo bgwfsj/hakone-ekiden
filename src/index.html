@@ -31,11 +31,26 @@
         <button class="info-btn" id="goalInfo" aria-label="进度如何计算">?</button>
       </div>
     </div>
-    <div class="goal-nums">
-      <span class="big mono" id="goalPct">0%</span>
+    <div class="rings">
+      <svg viewBox="0 0 100 100" width="176" height="176" aria-hidden="true">
+        <circle class="ring-track" cx="50" cy="50" r="44"></circle>
+        <circle class="ring-arc" id="ringDistArc" cx="50" cy="50" r="44"></circle>
+        <circle class="ring-track" cx="50" cy="50" r="36"></circle>
+        <circle class="ring-arc" id="ringPaceArc" cx="50" cy="50" r="36"></circle>
+        <circle class="ring-track" cx="50" cy="50" r="28"></circle>
+        <circle class="ring-arc" id="ringGoalArc" cx="50" cy="50" r="28"></circle>
+      </svg>
+      <div class="ring-center">
+        <span class="ring-center-val mono" id="ringGoalPct">0%</span>
+        <span class="ring-center-lbl">整体进度</span>
+      </div>
     </div>
-    <div class="bar"><div class="bar-fill" id="goalBar"></div></div>
-    <div class="goal-best mono" id="goalBest"></div>
+    <div class="ring-legend">
+      <span class="lg"><i class="dot d-dist"></i>距离 <b class="mono" id="ringDistPct">0%</b></span>
+      <span class="lg"><i class="dot d-pace"></i>配速 <b class="mono" id="ringPacePct">0%</b></span>
+      <span class="lg"><i class="dot d-goal"></i>整体 <b class="mono" id="ringGoalPctSub">0%</b></span>
+    </div>
+    <p class="ring-note mono" id="ringNote"></p>
     <div class="last-row">
       <span class="last-lbl">上一次</span>
       <div class="last-bar"><div class="last-fill" id="goalLastBar"></div></div>
@@ -199,30 +214,30 @@
   </div>
   <div class="sheet-body info-body">
     <div class="info-item">
-      <div class="info-k">单次含金量</div>
-      <div class="info-v">距离达成 &times; (50% + 50% &times; 配速达成)</div>
+      <div class="info-k">距离环</div>
+      <div class="info-v">最长单次 &divide; 10 km；超过 10 km 继续累积（不封顶）</div>
     </div>
     <div class="info-item">
-      <div class="info-k">距离达成</div>
-      <div class="info-v">本次距离 &divide; 10 km，封顶 100%</div>
+      <div class="info-k">配速环</div>
+      <div class="info-v">距离权重 &times; (25% + 75% &times; 配速达成)，距离达 8 km 权重满分；取历史最佳单次</div>
+    </div>
+    <div class="info-item">
+      <div class="info-k">整体环</div>
+      <div class="info-v">距离达成 &times; (50% + 50% &times; 配速达成)，取历史最佳单次</div>
     </div>
     <div class="info-item">
       <div class="info-k">配速达成</div>
-      <div class="info-v">6&#39;00&quot; 记 100%，8&#39;00&quot; 记 0%，中间线性</div>
-    </div>
-    <div class="info-item">
-      <div class="info-k">综合进度</div>
-      <div class="info-v">历史所有记录里，单次含金量最高的那一次</div>
+      <div class="info-v">6&#39;00&quot; 记 100%，8&#39;00&quot; 记 0%，中间线性；比 6&#39;00&quot; 快则每快 15 秒 +5%</div>
     </div>
     <div class="info-item">
       <div class="info-k">上一次</div>
-      <div class="info-v">最近一次跑步的含金量，仅供参考</div>
+      <div class="info-v">最近一次跑步的整体含金量，仅供参考</div>
     </div>
     <div class="info-item">
       <div class="info-k">达成条件</div>
-      <div class="info-v">出现一次 &ge;10 km 且配速 &le;6&#39;00&quot; 的记录</div>
+      <div class="info-v">距离 &ge;10 km；配速环：距离 &ge;8 km 且配速 &le;6&#39;00&quot;</div>
     </div>
-    <p class="info-eg mono">例：9 km @ 6&#39;00&quot; &rarr; 90% &times; 100% = 90%<br>慢跑也有积累：3 km @ 10&#39;00&quot; &rarr; 30% &times; 50% = 15%</p>
+    <p class="info-eg mono">例：9 km @ 6&#39;00&quot; &rarr; 距离 90% / 配速 100% / 整体 90%<br>跑得快有加成：8 km @ 5&#39;45&quot; &rarr; 配速 105%</p>
   </div>
   <div class="sheet-foot">
     <button class="btn ghost" id="infoDone">知道啦</button>

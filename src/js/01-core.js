@@ -13,6 +13,7 @@ var SCHEMA_VERSION = 2; // 存档结构：v2 = { schema, records }，v1 = 纯数
 var GOAL_KM = 10;
 var GOAL_PACE = 360; // 6'00"/km，单位秒
 var PACE_FLOOR = 480; // 8'00''/km：配速达成 0% 的锚点
+var GOAL_PACE_KM = 8; // 配速环的距离门槛（8km 即视为配速检验达标，达成比整体简单）
 
 function $(id){ return document.getElementById(id); }
 
