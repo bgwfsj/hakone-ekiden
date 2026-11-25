@@ -85,12 +85,6 @@ function renderGoal(){
   var pct = b ? b.pct : 0;
   $('goalBar').style.width = (pct*100) + '%';
   $('goalPct').textContent = Math.round(pct*100) + '%';
-  // 累计距离：距离目标的里程进度
-  var cum = totalDist();
-  var cumPct = Math.min(1, cum / GOAL_KM);
-  $('goalCumBar').style.width = (cumPct*100) + '%';
-  $('goalCumVal').textContent = cum >= GOAL_KM - 0.005 ? '10 km 达成' : cum.toFixed(1) + ' / 10 km';
-
 
   // 上一次：最近一次跑步的含金量
   var last = null;

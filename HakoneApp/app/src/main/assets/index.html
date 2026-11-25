@@ -408,12 +408,7 @@ body[data-sheetbg="celadon"] .sheet{background:rgba(168,230,206,.98);}
 .chart{width:100%;}
 .chart svg{width:100%;height:auto;display:block;}
 .chart-empty{font-size:12px;color:var(--weak);text-align:center;padding:26px 0 30px;letter-spacing:.04em;}
-/* 目标卡累计距离 */
-.cum-row{display:flex;align-items:center;gap:8px;margin-top:10px;}
-.cum-lbl{flex:0 0 auto;font-size:11px;color:var(--weak);letter-spacing:.06em;}
-.cum-bar{flex:1;height:4px;border-radius:999px;background:rgba(13,32,45,.06);overflow:hidden;}
-.cum-fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,rgba(10,168,122,.55),rgba(11,142,214,.65));transition:width .6s cubic-bezier(.22,.61,.36,1);}
-.cum-val{flex:0 0 auto;font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;min-width:64px;text-align:right;}
+
 </style>
 </head>
 <body>
@@ -451,11 +446,6 @@ body[data-sheetbg="celadon"] .sheet{background:rgba(168,230,206,.98);}
       <span class="last-val mono" id="goalLastVal">&mdash;</span>
     </div>
     <p class="goal-pred mono" id="goalPred"></p>
-    <div class="cum-row">
-      <span class="cum-lbl">累计距离</span>
-      <div class="cum-bar"><div class="cum-fill" id="goalCumBar"></div></div>
-      <span class="cum-val mono" id="goalCumVal">&mdash;</span>
-    </div>
     <p class="poem" id="goalPoem"></p>
   </section>
 
@@ -1030,12 +1020,6 @@ function renderGoal(){
   var pct = b ? b.pct : 0;
   $('goalBar').style.width = (pct*100) + '%';
   $('goalPct').textContent = Math.round(pct*100) + '%';
-  // 累计距离：距离目标的里程进度
-  var cum = totalDist();
-  var cumPct = Math.min(1, cum / GOAL_KM);
-  $('goalCumBar').style.width = (cumPct*100) + '%';
-  $('goalCumVal').textContent = cum >= GOAL_KM - 0.005 ? '10 km 达成' : cum.toFixed(1) + ' / 10 km';
-
 
   // 上一次：最近一次跑步的含金量
   var last = null;
