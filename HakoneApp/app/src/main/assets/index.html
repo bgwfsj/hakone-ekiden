@@ -179,9 +179,9 @@ body[data-bg="cross"]::before{background-color:#f7f8fa;background-image:repeatin
 .info-v{font-size:13px;color:var(--ink);line-height:1.6;}
 .info-eg{margin-top:12px;font-size:11.5px;color:var(--green);background:rgba(10,168,122,.06);border:1px solid rgba(10,168,122,.16);border-radius:10px;padding:8px 12px;text-align:center;}
 .poem{margin-top:10px;font-size:11.5px;color:var(--sub);letter-spacing:.04em;}
-/* ---------- 目标环 ---------- */
-.rings{position:relative;width:176px;height:176px;margin:6px auto 4px;}
-.rings svg{position:absolute;inset:0;width:100%;height:100%;display:block;transform:rotate(-90deg);}
+/* ---------- 目标样式 ---------- */
+.rings-wrap .rings{position:relative;width:176px;height:176px;margin:6px auto 4px;}
+.rings-wrap .rings svg{position:absolute;inset:0;width:100%;height:100%;display:block;transform:rotate(-90deg);}
 .ring-track{fill:none;stroke:rgba(13,32,45,.06);stroke-width:6;}
 .ring-arc{fill:none;stroke-width:6;stroke-linecap:round;stroke-dasharray:0 999;transition:stroke-dasharray .6s cubic-bezier(.22,.61,.36,1);}
 #ringDistArc{stroke:var(--blue);}
@@ -192,6 +192,43 @@ body[data-bg="cross"]::before{background-color:#f7f8fa;background-image:repeatin
 .ring-center-val{font-size:27px;font-weight:500;color:var(--ink);letter-spacing:-.02em;line-height:1;}
 .ring-center-val.done{color:#c98a2e;}
 .ring-center-lbl{font-size:10px;color:var(--weak);letter-spacing:.22em;}
+
+/* 圆环皮肤：三层环各自绕圆心旋转，速度不同（内快外慢，如行星公转） */
+.ring-arc{transform-box:view-box;transform-origin:50% 50%;}
+@keyframes ringSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+#ringDistArc{animation:ringSpin var(--spin-dist,17s) linear infinite;}
+#ringPaceArc{animation:ringSpin var(--spin-pace,13s) linear infinite reverse;}
+#ringGoalArc{animation:ringSpin var(--spin-goal,10s) linear infinite;}
+body[data-spin="off"] #ringDistArc,
+body[data-spin="off"] #ringPaceArc,
+body[data-spin="off"] #ringGoalArc{animation:none;}
+@media (prefers-reduced-motion: reduce){#ringDistArc,#ringPaceArc,#ringGoalArc{animation:none;}}
+
+/* 山峰 */
+.mountain-wrap .mountain{width:220px;margin:4px auto 2px;}
+.mountain-wrap .mountain svg{width:100%;height:auto;display:block;}
+.mt-mist{animation:mtDrift 7s ease-in-out infinite alternate;}
+.mt-glow{animation:mtBreathe 4s ease-in-out infinite;}
+@keyframes mtDrift{from{transform:translateX(-4px);}to{transform:translateX(6px);}}
+@keyframes mtBreathe{0%,100%{opacity:.55;}50%{opacity:.85;}}
+
+/* 皮肤切换 */
+#goalSkinMountain{display:none;}
+body[data-goalskin="mountain"] #goalSkinMountain{display:block;}
+body[data-goalskin="mountain"] #goalSkinRings{display:none;}
+
+/* 环旋转设置 */
+.spin-sec{margin-top:14px;}
+.spin-row{display:flex;align-items:center;gap:12px;}
+.spin-slider-wrap{flex:1;min-width:0;}
+#spinSlider{width:100%;height:5px;-webkit-appearance:none;appearance:none;border-radius:5px;background:linear-gradient(90deg,#d5e6f0,#d5e6f0);outline:none;margin:0;}
+#spinSlider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #0aa87a;box-shadow:0 2px 8px rgba(13,32,45,.18);cursor:pointer;}
+#spinSlider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #0aa87a;box-shadow:0 2px 8px rgba(13,32,45,.18);cursor:pointer;}
+.spin-ticks{display:flex;justify-content:space-between;padding:6px 4px 0;font-size:11.5px;color:var(--weak);letter-spacing:.02em;}
+.spin-val{min-width:40px;text-align:center;font-family:var(--mono,monospace);font-size:16px;font-weight:700;color:#0aa87a;}
+.spin-hint{font-size:10.5px;color:var(--weak);margin-top:6px;letter-spacing:.04em;}
+
+/* 共享图例与说明 */
 .ring-legend{display:flex;justify-content:center;gap:16px;margin:4px 0 6px;flex-wrap:wrap;}
 .lg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub);}
 .lg b{color:var(--ink);font-weight:500;}
@@ -199,8 +236,19 @@ body[data-bg="cross"]::before{background-color:#f7f8fa;background-image:repeatin
 .d-dist{background:var(--blue);}
 .d-pace{background:var(--green);}
 .d-goal{background:#14919b;}
+body[data-goalskin="mountain"] .d-dist{background:#3b9cd8;}
+body[data-goalskin="mountain"] .d-pace{background:#63c98c;}
+body[data-goalskin="mountain"] .d-goal{background:#f48fb1;}
 .ring-note{font-size:10.5px;color:var(--sub);text-align:center;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
+/* 目标样式选择器 */
+.goalskin-sec{margin-top:14px;}
+.goalskin-row{display:flex;gap:10px;}
+.goalskin-card{flex:1;border:1px solid var(--line);border-radius:14px;background:#fff;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-family:var(--sans);}
+.goalskin-card.on{border-color:#0aa87a;box-shadow:0 0 0 1px #0aa87a;}
+.sk-pv{width:66px;height:66px;display:block;}
+.goalskin-name{font-size:11px;color:var(--sub);}
+.goalskin-card.on .goalskin-name{color:var(--ink);font-weight:600;}
 /* ---------- 记录按钮 ---------- */
 .record-btn{
   display:block;width:100%;height:58px;margin:6px 0 16px;
@@ -456,25 +504,93 @@ body[data-sheetbg="celadon"] .sheet{background:rgba(168,230,206,.98);}
         <button class="info-btn" id="goalInfo" aria-label="进度如何计算">?</button>
       </div>
     </div>
-    <div class="rings">
-      <svg viewBox="0 0 100 100" width="176" height="176" aria-hidden="true">
-        <circle class="ring-track" cx="50" cy="50" r="44"></circle>
-        <circle class="ring-arc" id="ringDistArc" cx="50" cy="50" r="44"></circle>
-        <circle class="ring-track" cx="50" cy="50" r="36"></circle>
-        <circle class="ring-arc" id="ringPaceArc" cx="50" cy="50" r="36"></circle>
-        <circle class="ring-track" cx="50" cy="50" r="28"></circle>
-        <circle class="ring-arc" id="ringGoalArc" cx="50" cy="50" r="28"></circle>
-      </svg>
-      <div class="ring-center">
-        <span class="ring-center-val mono" id="ringGoalPct">0%</span>
-        <span class="ring-center-lbl">整体进度</span>
+    <div class="rings-wrap" id="goalSkinRings">
+      <div class="rings">
+        <svg viewBox="0 0 100 100" width="176" height="176" aria-hidden="true">
+          <circle class="ring-track" cx="50" cy="50" r="44"></circle>
+          <circle class="ring-arc" id="ringDistArc" cx="50" cy="50" r="44"></circle>
+          <circle class="ring-track" cx="50" cy="50" r="36"></circle>
+          <circle class="ring-arc" id="ringPaceArc" cx="50" cy="50" r="36"></circle>
+          <circle class="ring-track" cx="50" cy="50" r="28"></circle>
+          <circle class="ring-arc" id="ringGoalArc" cx="50" cy="50" r="28"></circle>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-center-val mono" id="ringGoalPct">0%</span>
+          <span class="ring-center-lbl">整体进度</span>
+        </div>
       </div>
     </div>
+    <div class="mountain-wrap" id="goalSkinMountain">
+      <div class="mountain">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <defs>
+            <linearGradient id="mtSky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fdeef6"></stop>
+              <stop offset=".45" stop-color="#e9f3fc"></stop>
+              <stop offset="1" stop-color="#f7fafb"></stop>
+            </linearGradient>
+            <linearGradient id="mtRidge" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stop-color="#cfe2f2"></stop>
+              <stop offset="1" stop-color="#eaf3fb"></stop>
+            </linearGradient>
+            <linearGradient id="mtBody" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stop-color="#63c98c"></stop>
+              <stop offset=".7" stop-color="#8ee0b0"></stop>
+              <stop offset="1" stop-color="#c6f0d8"></stop>
+            </linearGradient>
+            <linearGradient id="mtLine" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stop-color="#3b9cd8"></stop>
+              <stop offset="1" stop-color="#8ecdf0"></stop>
+            </linearGradient>
+            <filter id="mtSoft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2"></feGaussianBlur></filter>
+            <filter id="mtGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2"></feGaussianBlur></filter>
+            <path id="mtPath" d="M 6 88 C 26 87 42 70 55 34 C 58 24 64 24 67 34 C 80 70 92 87 96 88 Z"></path>
+            <clipPath id="mtClip"><use href="#mtPath"></use></clipPath>
+            <clipPath id="mtRise"><rect id="mtRiseRect" x="0" y="88" width="100" height="0"></rect></clipPath>
+          </defs>
+          <rect x="0" y="0" width="100" height="100" fill="url(#mtSky)"></rect>
+          <circle cx="26" cy="20" r="2.2" fill="#fff" opacity=".7" filter="url(#mtSoft)"></circle>
+          <circle cx="88" cy="34" r="1.8" fill="#fde3ee" opacity=".7" filter="url(#mtSoft)"></circle>
+          <circle cx="14" cy="44" r="1.6" fill="#fff" opacity=".6" filter="url(#mtSoft)"></circle>
+          <circle cx="77" cy="20" r="9" fill="#fff" opacity=".9" filter="url(#mtSoft)"></circle>
+          <circle cx="77" cy="20" r="6" fill="#ffe9f2" opacity=".95" filter="url(#mtSoft)"></circle>
+          <path d="M -4 92 C 22 86 42 66 60 50 C 74 64 86 86 104 92 Z" fill="url(#mtRidge)" opacity=".9"></path>
+          <rect class="mt-mist" x="2" y="66" width="96" height="7" rx="3.5" fill="#fff" opacity=".5" filter="url(#mtSoft)"></rect>
+          <rect class="mt-mist" x="-6" y="76" width="110" height="6" rx="3" fill="#fff" opacity=".35" filter="url(#mtSoft)"></rect>
+          <g class="mt-glow">
+            <g clip-path="url(#mtClip)">
+              <rect id="mtBodyGlow" x="0" y="28" width="100" height="60" fill="url(#mtBody)" filter="url(#mtGlow)" opacity=".5"></rect>
+            </g>
+          </g>
+          <g clip-path="url(#mtClip)">
+            <rect id="mtBody" x="0" y="28" width="100" height="60" fill="url(#mtBody)" opacity=".92"></rect>
+          </g>
+          <g clip-path="url(#mtRise)">
+          <path id="mtOutlineGlow" d="M 6 88 C 26 87 42 70 55 34 C 58 24 64 24 67 34 C 80 70 92 87 96 88 Z" fill="none" stroke="url(#mtLine)" stroke-width="2.6" stroke-linecap="round" filter="url(#mtGlow)" opacity=".55" class="mt-glow"></path>
+          <path id="mtOutline" d="M 6 88 C 26 87 42 70 55 34 C 58 24 64 24 67 34 C 80 70 92 87 96 88 Z" fill="none" stroke="url(#mtLine)" stroke-width="2.2" stroke-linecap="round"></path>
+          </g>
+          <path d="M 6 88 C 26 87 42 70 55 34 C 58 24 64 24 67 34 C 80 70 92 87 96 88 Z" fill="none" stroke="#9fb8cc" stroke-width="1.4" stroke-dasharray="2 4" opacity=".55"></path>
+          <g>
+            <line id="mtPole" x1="61" y1="88" x2="61" y2="79" stroke="#0c1a22" stroke-width="1.4" stroke-linecap="round"></line>
+            <path id="mtFlagGlow" d="M 61 79 L 69 82 L 61 85 Z" fill="#f48fb1" filter="url(#mtSoft)"></path>
+            <path id="mtFlag" d="M 61 79 L 69 82 L 61 85 Z" fill="#f48fb1"></path>
+            <rect id="mtPillBg" x="53" y="69.7" width="16" height="8.6" rx="4.3" fill="#fde9f1" stroke="#f6b6cc" stroke-width=".7"></rect>
+            <text id="mtPill" x="61" y="74.7" text-anchor="middle" font-size="6.4" font-weight="600" fill="#d45f8d">0%</text>
+          </g>
+          <rect x="0" y="87" width="100" height="9" fill="#c8dcec" opacity=".5" filter="url(#mtSoft)"></rect>
+        </svg>
+      </div>
+    </div>
+
+    
+
     <div class="ring-legend">
       <span class="lg"><i class="dot d-dist"></i>距离 <b class="mono" id="ringDistPct">0%</b></span>
       <span class="lg"><i class="dot d-pace"></i>配速 <b class="mono" id="ringPacePct">0%</b></span>
       <span class="lg"><i class="dot d-goal"></i>整体 <b class="mono" id="ringGoalPctSub">0%</b></span>
     </div>
+
+
     <p class="ring-note mono" id="ringNote"></p>
     <div class="last-row">
       <span class="last-lbl">上一次</span>
@@ -639,15 +755,15 @@ body[data-sheetbg="celadon"] .sheet{background:rgba(168,230,206,.98);}
   </div>
   <div class="sheet-body info-body">
     <div class="info-item">
-      <div class="info-k">距离环</div>
-      <div class="info-v">最长单次 &divide; 10 km；超过 10 km 继续累积（不封顶）</div>
+      <div class="info-k">距离</div>
+      <div class="info-v">最长单次 &divide; 10 km，超过 10 km 继续累积（不封顶）</div>
     </div>
     <div class="info-item">
-      <div class="info-k">配速环</div>
+      <div class="info-k">配速</div>
       <div class="info-v">距离权重 &times; (25% + 75% &times; 配速达成)，距离达 8 km 权重满分；取历史最佳单次</div>
     </div>
     <div class="info-item">
-      <div class="info-k">整体环</div>
+      <div class="info-k">整体</div>
       <div class="info-v">距离达成 &times; (50% + 50% &times; 配速达成)，取历史最佳单次</div>
     </div>
     <div class="info-item">
@@ -660,7 +776,7 @@ body[data-sheetbg="celadon"] .sheet{background:rgba(168,230,206,.98);}
     </div>
     <div class="info-item">
       <div class="info-k">达成条件</div>
-      <div class="info-v">距离 &ge;10 km；配速环：距离 &ge;8 km 且配速 &le;6&#39;00&quot;</div>
+      <div class="info-v">距离 &ge;10 km；配速：距离 &ge;8 km 且配速 &le;6&#39;00&quot;</div>
     </div>
     <p class="info-eg mono">例：9 km @ 6&#39;00&quot; &rarr; 距离 90% / 配速 100% / 整体 90%<br>跑得快有加成：8 km @ 5&#39;45&quot; &rarr; 配速 105%</p>
   </div>
@@ -704,7 +820,23 @@ body[data-sheetbg="celadon"] .sheet{background:rgba(168,230,206,.98);}
     <div class="bg-row" id="sheetBgRow"></div>
   </div>
 
-  <div class="preset-sec">
+    <div class="goalskin-sec">
+    <div class="bg-lbl">目标样式</div>
+    <div class="goalskin-row" id="goalSkinRow"></div>
+  </div>
+
+  <div class="spin-sec">
+    <div class="bg-lbl">环旋转</div>
+    <div class="spin-row" id="spinRow">
+      <div class="spin-slider-wrap">
+        <input type="range" id="spinSlider" min="0" max="5" step="1" value="2" aria-label="环旋转速度">
+        <div class="spin-ticks"><span>静止</span><span>&times;1</span><span>&times;2</span><span>&times;3</span><span>&times;4</span><span>&times;5</span></div>
+      </div>
+      <div class="spin-val" id="spinLabel">&times;2</div>
+    </div>
+    <div class="spin-hint">圆环皮肤的环，会绕圆心缓缓转动</div>
+  </div>
+<div class="preset-sec">
     <div class="bg-lbl">记录预选</div>
     <div id="presetSettings"></div>
   </div>
@@ -781,6 +913,8 @@ var STORE = {
   cardBg: 'hakone_cardbg_v1',
   presets: 'hakone_presets_v1',
   sheetBg: 'hakone_sheetbg_v1',
+  goalSkin: 'hakone_goalskin_v1',
+  spin: 'hakone_goalspin_v1',
   eggs: 'hakone_eggs_v1'
 };
 var SCHEMA_VERSION = 2; // 存档结构：v2 = { schema, records }，v1 = 纯数组
@@ -812,8 +946,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.1.2';
+var APP_VERSION = '1.1.3';
 var APP_CHANGELOG = [
+  'v1.1.3 · 圆环皮肤新增动态旋转：三环各自绕圆心转动（配速环反向），菜单可拖滑块调速（静止～5 倍）',
   'v1.1.2 · 目标卡改为同心三环：距离/配速/整体；配速越快越接近满分（每快 15 秒 +5%）',
   'v1.1.1 · 目标卡移除累计距离进度条，界面更简洁',
   'v1.1.0 · 应用架构重构优化：存档升级为带版本号的新格式（旧数据自动兼容）、日历与统计渲染更流畅、代码模块化',
@@ -1076,32 +1211,89 @@ function bestPaceRing(){
   return best;
 }
 
-// 环形进度：pct 可超过 1（距离环不封顶），环满格、中心显示实际百分比
-// 同心三环：最外=距离(r44)、中间=配速(r36)、最内=整体(r28)
+// 目标样式：圆环 / 山峰 双皮肤，共用同一套指标计算
 var RING_C = { dist: 2 * Math.PI * 44, pace: 2 * Math.PI * 36, goal: 2 * Math.PI * 28 };
 function setRing(arcId, pctId, pct, C){
-  var clamped = Math.min(1, pct);
+  var clamped = Math.max(0, Math.min(1, pct));
   $(arcId).style.strokeDasharray = (clamped * C) + ' ' + C;
   $(pctId).textContent = Math.round(pct * 100) + '%';
   $(arcId).classList.toggle('done', pct >= 1);
 }
-
-function renderGoal(){
-  // 距离环（最外圈）：最长单次 / 10km，不封顶（超过 10km 继续累积）
-  var maxD = 0, maxDrec = null;
-  records.forEach(function(r){ if(r.distance && r.distance > maxD){ maxD = r.distance; maxDrec = r; } });
-  setRing('ringDistArc', 'ringDistPct', maxD / GOAL_KM, RING_C.dist);
-
-  // 配速环（中间圈）：历史最佳单次的配速含金量（考虑距离）
-  var bp = bestPaceRing();
-  setRing('ringPaceArc', 'ringPacePct', bp ? bp.pct : 0, RING_C.pace);
-
-  // 整体环（最内圈 + 中心）：历史最佳单次含金量（与之前保持一致）
-  var b = bestProof();
-  var goalPct = b ? b.pct : 0;
+function renderRings(distPct, pacePct, goalPct){
+  setRing('ringDistArc', 'ringDistPct', distPct, RING_C.dist);
+  setRing('ringPaceArc', 'ringPacePct', pacePct, RING_C.pace);
   setRing('ringGoalArc', 'ringGoalPct', goalPct, RING_C.goal);
   $('ringGoalPctSub').textContent = Math.round(goalPct * 100) + '%';
   $('ringGoalPct').classList.toggle('done', goalPct >= 1);
+}
+
+// 山峰：山影轮廓=距离（描边进度）、山体=配速（自山脚向上染色）、峰顶旗=整体（旗大小+百分比）
+var MT = { baseY: 88, cache: null };
+function mtMetrics(){
+  if(MT.cache) return MT.cache;
+  var L = $('mtPath').getTotalLength();
+  var minY = 1e9, peakFrac = 0;
+  for(var i = 0; i <= 120; i++){
+    var p = $('mtPath').getPointAtLength(L * i / 120);
+    if(p.y < minY){ minY = p.y; peakFrac = i / 120; }
+  }
+  MT.cache = { L: L, h: MT.baseY - minY, peakFrac: peakFrac };
+  return MT.cache;
+}
+function paintMountain(distPct, pacePct, goalPct){
+  var m = mtMetrics();
+
+  // 山影轮廓=距离：自山脚向上浮现（0 最低，100 填满）
+  var dDist = Math.max(0, Math.min(1, distPct));
+  var cutD = MT.baseY - dDist * m.h;
+  $('mtRiseRect').setAttribute('y', cutD.toFixed(1));
+  $('mtRiseRect').setAttribute('height', (dDist * m.h).toFixed(1));
+
+  // 山体=配速：自山脚向上染色（0 最低，100 填满）
+  var pPace = Math.max(0, Math.min(1, pacePct));
+  var cutP = MT.baseY - pPace * m.h;
+  $('mtBody').setAttribute('y', cutP.toFixed(1));
+  $('mtBody').setAttribute('height', (pPace * m.h).toFixed(1));
+  $('mtBodyGlow').setAttribute('y', cutP.toFixed(1));
+  $('mtBodyGlow').setAttribute('height', (pPace * m.h).toFixed(1));
+
+  // 峰顶旗=整体：旗子沿山坡攀升，位置代表进度（0 山脚，100 峰顶）
+  var gPct = Math.max(0, Math.min(1, goalPct));
+  var pt = $('mtPath').getPointAtLength(m.L * m.peakFrac * gPct);
+  var fx = Math.max(14, pt.x);
+  var fy = pt.y;
+  $('mtPole').setAttribute('x1', fx.toFixed(1));
+  $('mtPole').setAttribute('y1', fy.toFixed(1));
+  $('mtPole').setAttribute('x2', fx.toFixed(1));
+  $('mtPole').setAttribute('y2', (fy - 9).toFixed(1));
+  var d = 'M ' + fx.toFixed(1) + ' ' + (fy - 9).toFixed(1)
+        + ' L ' + (fx + 8).toFixed(1) + ' ' + (fy - 6).toFixed(1)
+        + ' L ' + fx.toFixed(1) + ' ' + (fy - 3).toFixed(1) + ' Z';
+  $('mtFlag').setAttribute('d', d);
+  $('mtFlagGlow').setAttribute('d', d);
+  $('mtPillBg').setAttribute('x', (fx - 8).toFixed(1));
+  $('mtPillBg').setAttribute('y', (fy - 18.3).toFixed(1));
+  $('mtPill').setAttribute('x', fx.toFixed(1));
+  $('mtPill').setAttribute('y', (fy - 13.3).toFixed(1));
+  $('mtPill').textContent = Math.round(goalPct * 100) + '%';
+}
+
+function renderGoal(){
+  // 距离：最长单次 / 10km，不封顶
+  var maxD = 0, maxDrec = null;
+  records.forEach(function(r){ if(r.distance && r.distance > maxD){ maxD = r.distance; maxDrec = r; } });
+  var distPct = maxD / GOAL_KM;
+
+  // 配速：历史最佳单次的配速含金量（考虑距离）
+  var bp = bestPaceRing();
+  var pacePct = bp ? bp.pct : 0;
+
+  // 整体：历史最佳单次含金量
+  var b = bestProof();
+  var goalPct = b ? b.pct : 0;
+
+  renderRings(distPct, pacePct, goalPct);
+  paintMountain(distPct, pacePct, goalPct);
 
   // 说明：最长距离 + 最佳配速那次
   $('ringNote').textContent =
@@ -1113,9 +1305,9 @@ function renderGoal(){
   records.forEach(function(r){ if(!last || r.ts > last.ts) last = r; });
   if(last && last.distance && last.dur){
     var lastPct = proofOf(last);
-    $('goalLastBar').style.width = (lastPct*100) + '%';
-    $('goalLastVal').textContent = Math.round(lastPct*100) + '%';
-  }else{
+    $('goalLastBar').style.width = (lastPct * 100) + '%';
+    $('goalLastVal').textContent = Math.round(lastPct * 100) + '%';
+  } else {
     $('goalLastBar').style.width = '0%';
     $('goalLastVal').textContent = '—';
   }
@@ -1580,258 +1772,329 @@ function confettiBurst(){
 }
 
 
-/* ---------- 背景选择 ---------- */
-var BGS = [
-  { id:'default', name:'默认', color:'#f6f8fa', image:'radial-gradient(70% 40% at 50% 0%, rgba(10,168,122,.10), transparent 62%), radial-gradient(65% 45% at 50% 100%, rgba(11,142,214,.10), transparent 62%), repeating-linear-gradient(0deg, transparent 0 43px, rgba(13,32,45,.035) 44px), repeating-linear-gradient(90deg, transparent 0 43px, rgba(13,32,45,.035) 44px)', size:'auto' },
-  { id:'snow', name:'晴空白', color:'#ffffff', image:'none', size:'auto' },
-  { id:'mist', name:'雾灰', color:'#eef1f4', image:'none', size:'auto' },
-  { id:'sakura', name:'樱花粉', color:'#fdf1f5', image:'none', size:'auto' },
-  { id:'mint', name:'薄荷绿', color:'#eefaf4', image:'none', size:'auto' },
-  { id:'sky', name:'晴空蓝', color:'#eef6fd', image:'none', size:'auto' },
-  { id:'cream', name:'暖米', color:'#faf5ec', image:'none', size:'auto' },
-  { id:'lav', name:'淡紫', color:'#f4f1fb', image:'none', size:'auto' },
-  { id:'grass', name:'浅草绿', color:'#e8f5e9', image:'none', size:'auto' },
-  { id:'matcha', name:'抹茶绿', color:'#d8e8d3', image:'none', size:'auto' },
-  { id:'sage', name:'鼠尾草绿', color:'#c5d0b4', image:'none', size:'auto' },
-  { id:'moss', name:'苔绿', color:'#c8e6c9', image:'none', size:'auto' },
-  { id:'seafoam', name:'海沫绿', color:'#b2dfdb', image:'none', size:'auto' },
-  { id:'celadon', name:'青瓷绿', color:'#a8e6ce', image:'none', size:'auto' },
-  { id:'lines-h', name:'横线', color:'#f7f8fa', image:'repeating-linear-gradient(0deg, transparent 0 13px, rgba(13,32,45,.05) 14px)', size:'auto' },
-  { id:'lines-v', name:'竖线', color:'#f7f8fa', image:'repeating-linear-gradient(90deg, transparent 0 13px, rgba(13,32,45,.05) 14px)', size:'auto' },
-  { id:'diag', name:'斜纹', color:'#f7f8fa', image:'repeating-linear-gradient(45deg, rgba(13,32,45,.05) 0 1px, transparent 1px 11px)', size:'auto' },
-  { id:'grid', name:'网格', color:'#f7f8fa', image:'repeating-linear-gradient(0deg, transparent 0 19px, rgba(13,32,45,.05) 20px), repeating-linear-gradient(90deg, transparent 0 19px, rgba(13,32,45,.05) 20px)', size:'auto' },
-  { id:'dots', name:'圆点', color:'#f7f8fa', image:'radial-gradient(rgba(13,32,45,.09) 1.2px, transparent 1.3px)', size:'16px 16px' },
-  { id:'waves', name:'波浪', color:'#f7f8fa', image:'radial-gradient(circle at 0 0, rgba(13,32,45,.055) 2px, transparent 2.5px), radial-gradient(circle at 16px 16px, rgba(13,32,45,.055) 2px, transparent 2.5px)', size:'32px 32px' },
-  { id:'cross', name:'格纹', color:'#f7f8fa', image:'repeating-linear-gradient(45deg, rgba(13,32,45,.045) 0 1px, transparent 1px 12px), repeating-linear-gradient(-45deg, rgba(13,32,45,.045) 0 1px, transparent 1px 12px)', size:'auto' }
-];
-function applyBg(id){
-  if(id === 'default') document.body.removeAttribute('data-bg');
-  else document.body.setAttribute('data-bg', id);
-  try{ localStorage.setItem(STORE.bg, id); }catch(e){}
-  renderBgRow(id);
+/* ---------- 背景选择 ---------- */
+var BGS = [
+  { id:'default', name:'默认', color:'#f6f8fa', image:'radial-gradient(70% 40% at 50% 0%, rgba(10,168,122,.10), transparent 62%), radial-gradient(65% 45% at 50% 100%, rgba(11,142,214,.10), transparent 62%), repeating-linear-gradient(0deg, transparent 0 43px, rgba(13,32,45,.035) 44px), repeating-linear-gradient(90deg, transparent 0 43px, rgba(13,32,45,.035) 44px)', size:'auto' },
+  { id:'snow', name:'晴空白', color:'#ffffff', image:'none', size:'auto' },
+  { id:'mist', name:'雾灰', color:'#eef1f4', image:'none', size:'auto' },
+  { id:'sakura', name:'樱花粉', color:'#fdf1f5', image:'none', size:'auto' },
+  { id:'mint', name:'薄荷绿', color:'#eefaf4', image:'none', size:'auto' },
+  { id:'sky', name:'晴空蓝', color:'#eef6fd', image:'none', size:'auto' },
+  { id:'cream', name:'暖米', color:'#faf5ec', image:'none', size:'auto' },
+  { id:'lav', name:'淡紫', color:'#f4f1fb', image:'none', size:'auto' },
+  { id:'grass', name:'浅草绿', color:'#e8f5e9', image:'none', size:'auto' },
+  { id:'matcha', name:'抹茶绿', color:'#d8e8d3', image:'none', size:'auto' },
+  { id:'sage', name:'鼠尾草绿', color:'#c5d0b4', image:'none', size:'auto' },
+  { id:'moss', name:'苔绿', color:'#c8e6c9', image:'none', size:'auto' },
+  { id:'seafoam', name:'海沫绿', color:'#b2dfdb', image:'none', size:'auto' },
+  { id:'celadon', name:'青瓷绿', color:'#a8e6ce', image:'none', size:'auto' },
+  { id:'lines-h', name:'横线', color:'#f7f8fa', image:'repeating-linear-gradient(0deg, transparent 0 13px, rgba(13,32,45,.05) 14px)', size:'auto' },
+  { id:'lines-v', name:'竖线', color:'#f7f8fa', image:'repeating-linear-gradient(90deg, transparent 0 13px, rgba(13,32,45,.05) 14px)', size:'auto' },
+  { id:'diag', name:'斜纹', color:'#f7f8fa', image:'repeating-linear-gradient(45deg, rgba(13,32,45,.05) 0 1px, transparent 1px 11px)', size:'auto' },
+  { id:'grid', name:'网格', color:'#f7f8fa', image:'repeating-linear-gradient(0deg, transparent 0 19px, rgba(13,32,45,.05) 20px), repeating-linear-gradient(90deg, transparent 0 19px, rgba(13,32,45,.05) 20px)', size:'auto' },
+  { id:'dots', name:'圆点', color:'#f7f8fa', image:'radial-gradient(rgba(13,32,45,.09) 1.2px, transparent 1.3px)', size:'16px 16px' },
+  { id:'waves', name:'波浪', color:'#f7f8fa', image:'radial-gradient(circle at 0 0, rgba(13,32,45,.055) 2px, transparent 2.5px), radial-gradient(circle at 16px 16px, rgba(13,32,45,.055) 2px, transparent 2.5px)', size:'32px 32px' },
+  { id:'cross', name:'格纹', color:'#f7f8fa', image:'repeating-linear-gradient(45deg, rgba(13,32,45,.045) 0 1px, transparent 1px 12px), repeating-linear-gradient(-45deg, rgba(13,32,45,.045) 0 1px, transparent 1px 12px)', size:'auto' }
+];
+function applyBg(id){
+  if(id === 'default') document.body.removeAttribute('data-bg');
+  else document.body.setAttribute('data-bg', id);
+  try{ localStorage.setItem(STORE.bg, id); }catch(e){}
+  renderBgRow(id);
+}
+function renderBgRow(active){
+  var row = $('bgRow');
+  if(!row) return;
+  row.innerHTML = '';
+  BGS.forEach(function(b){
+    var s = document.createElement('button');
+    s.type = 'button';
+    s.className = 'bg-swatch' + (b.id === active ? ' on' : '');
+    s.title = b.name;
+    s.setAttribute('aria-label', '背景：' + b.name);
+    s.style.backgroundColor = b.color;
+    s.style.backgroundImage = b.image;
+    s.style.backgroundSize = b.size;
+    s.addEventListener('click', function(){ applyBg(b.id); });
+    row.appendChild(s);
+  });
+}
+
+
+
+/* ---------- 卡片配色 ---------- */
+var CARD_IDS = [
+  { id:'goal', label:'目标', el:'goalCard' },
+  { id:'stat', label:'统计', el:'statCard' },
+  { id:'cal', label:'日历', el:'calCard' },
+  { id:'trend', label:'趋势', el:'trendCard' }
+];
+var CARD_TINTS = [
+  { id:'default', name:'默认', css:'rgba(255,255,255,.95)' },
+  { id:'mist', name:'雾灰', css:'rgba(238,241,244,.95)' },
+  { id:'sakura', name:'樱花粉', css:'rgba(253,241,245,.95)' },
+  { id:'mint', name:'薄荷绿', css:'rgba(238,250,244,.95)' },
+  { id:'sky', name:'晴空蓝', css:'rgba(238,246,253,.95)' },
+  { id:'cream', name:'暖米', css:'rgba(250,245,236,.95)' },
+  { id:'lav', name:'淡紫', css:'rgba(244,241,251,.95)' },
+  { id:'grass', name:'浅草绿', css:'rgba(232,245,233,.95)' },
+  { id:'matcha', name:'抹茶绿', css:'rgba(216,232,211,.95)' },
+  { id:'sage', name:'鼠尾草绿', css:'rgba(197,208,180,.95)' },
+  { id:'moss', name:'苔绿', css:'rgba(200,230,201,.95)' },
+  { id:'seafoam', name:'海沫绿', css:'rgba(178,223,219,.95)' },
+  { id:'celadon', name:'青瓷绿', css:'rgba(168,230,206,.95)' }
+];
+var cardBg = loadCardBg();
+function loadCardBg(){
+  try{ var o = JSON.parse(localStorage.getItem(STORE.cardBg) || ''); if(o && typeof o === 'object') return o; }catch(e){}
+  return {};
+}
+function saveCardBg(){ try{ localStorage.setItem(STORE.cardBg, JSON.stringify(cardBg)); }catch(e){} }
+function applyCardTint(cardId, tintId){
+  var info = null;
+  CARD_IDS.forEach(function(x){ if(x.id === cardId) info = x; });
+  if(!info) return;
+  var el = $(info.el);
+  if(!el) return;
+  CARD_TINTS.forEach(function(t){ el.classList.remove('tint-' + t.id); });
+  if(tintId !== 'default') el.classList.add('tint-' + tintId);
+  cardBg[cardId] = tintId;
+  saveCardBg();
+  renderCardBgRows();
+  renderPresetChips();
+}
+function renderCardBgRows(){
+  var wrap = $('cardBgRows');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  CARD_IDS.forEach(function(info){
+    var row = document.createElement('div');
+    row.className = 'cbg-row';
+    var lab = document.createElement('span');
+    lab.className = 'cbg-label';
+    lab.textContent = info.label;
+    var sw = document.createElement('div');
+    sw.className = 'cbg-swatches';
+    var active = cardBg[info.id] || 'default';
+    CARD_TINTS.forEach(function(t){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cbg-swatch' + (t.id === active ? ' on' : '');
+      b.title = t.name;
+      b.style.backgroundColor = t.css;
+      b.addEventListener('click', function(){ applyCardTint(info.id, t.id); });
+      sw.appendChild(b);
+    });
+    row.appendChild(lab);
+    row.appendChild(sw);
+    wrap.appendChild(row);
+  });
+}
+
+/* ---------- 记录预选 ---------- */
+var PRESET_DEFAULTS = {
+  dist: ['3','5','10'],
+  dur: ['30','45','60'],
+  feel: ['😊 爽','😮‍💨 累','🥱 疲惫','☀️ 太轻松了','🔥 燃起来了']
+};
+var presets = loadPresets();
+function loadPresets(){
+  var o = null;
+  try{ o = JSON.parse(localStorage.getItem(STORE.presets) || ''); }catch(e){}
+  if(!o || typeof o !== 'object'){
+    return JSON.parse(JSON.stringify(PRESET_DEFAULTS));
+  }
+  ['dist','dur','feel'].forEach(function(k){
+    if(!Array.isArray(o[k]) || !o[k].length) o[k] = PRESET_DEFAULTS[k].slice();
+  });
+  return o;
+}
+function savePresets(){ try{ localStorage.setItem(STORE.presets, JSON.stringify(presets)); }catch(e){} }
+function presetChipHtml(kind, val, idx){
+  var unit = kind === 'dist' ? ' km' : (kind === 'dur' ? ' min' : '');
+  return '<button type="button" class="chip preset-chip" data-kind="'+kind+'" data-idx="'+idx+'">'+val+unit+'</button>';
+}
+function renderPresetChips(){
+  var d = $('presetDist'), t = $('presetDur'), f = $('presetFeel');
+  if(d) d.innerHTML = presets.dist.map(function(v,i){ return presetChipHtml('dist', v, i); }).join('');
+  if(t) t.innerHTML = presets.dur.map(function(v,i){ return presetChipHtml('dur', v, i); }).join('');
+  if(f) f.innerHTML = presets.feel.map(function(v,i){ return presetChipHtml('feel', v, i); }).join('');
+}
+function renderPresetSettings(){
+  var wrap = $('presetSettings');
+  if(!wrap) return;
+  var groups = [
+    { key:'dist', label:'距离（km）' },
+    { key:'dur', label:'时长（分钟）' },
+    { key:'feel', label:'感受' }
+  ];
+  var html = '';
+  groups.forEach(function(g){
+    html += '<div class="preset-set-row"><div class="bg-lbl">' + g.label + '</div><div class="preset-set-inputs">';
+    presets[g.key].forEach(function(v, i){
+      html += '<input type="text" class="preset-in" data-key="' + g.key + '" data-idx="' + i + '" value="' + v.replace(/"/g,'&quot;') + '">';
+    });
+    html += '</div></div>';
+  });
+  html += '<button type="button" class="btn primary" id="presetSave">保存预选</button>';
+  wrap.innerHTML = html;
+}
+function applyPresetChip(kind, val){
+  if(kind === 'dist'){
+    var n = parseFloat(val);
+    $('fDist').value = isFinite(n) ? n : '';
+  } else if(kind === 'dur'){
+    var m = parseInt(val, 10);
+    $('fMin').value = isFinite(m) && m >= 0 ? m : '';
+    $('fSec').value = '0';
+  } else if(kind === 'feel'){
+    $('fNote').value = val;
+    $('noteCount').textContent = val.length + '/100';
+  }
+  updatePace();
+}
+function savePresetSettings(){
+  var inputs = document.querySelectorAll('#presetSettings .preset-in');
+  var bad = null;
+  inputs.forEach(function(inp){
+    var key = inp.getAttribute('data-key');
+    var idx = parseInt(inp.getAttribute('data-idx'), 10);
+    var v = inp.value.trim();
+    if(key === 'dist' || key === 'dur'){
+      var n = parseFloat(v);
+      if(!isFinite(n) || n <= 0){ bad = key; return; }
+      presets[key][idx] = String(n);
+    } else {
+      if(!v){ bad = key; return; }
+      presets[key][idx] = v;
+    }
+  });
+  if(bad){ toast('预选值要填有效的正数哦'); return; }
+  savePresets();
+  renderPresetSettings();
+  renderPresetChips();
+  toast('预选值已保存');
+}
+document.addEventListener('click', function(e){
+  var chip = e.target && e.target.closest ? e.target.closest('.preset-chip') : null;
+  if(!chip) return;
+  var kind = chip.getAttribute('data-kind');
+  var idx = parseInt(chip.getAttribute('data-idx'), 10);
+  if(!kind || isNaN(idx) || !presets[kind] || idx >= presets[kind].length) return;
+  applyPresetChip(kind, presets[kind][idx]);
+});
+document.addEventListener('click', function(e){
+  if(e.target && e.target.id === 'presetSave') savePresetSettings();
+});
+
+/* ---------- 弹框配色 ---------- */
+var SHEET_TINTS = [
+  { id:'default', name:'默认', color:'#ffffff' },
+  { id:'mist', name:'雾灰', color:'#eef1f4' },
+  { id:'sakura', name:'樱花粉', color:'#fdf1f5' },
+  { id:'mint', name:'薄荷绿', color:'#eefaf4' },
+  { id:'sky', name:'晴空蓝', color:'#eef6fd' },
+  { id:'cream', name:'暖米', color:'#faf5ec' },
+  { id:'lav', name:'淡紫', color:'#f4f1fb' },
+  { id:'grass', name:'浅草绿', color:'#e8f5e9' },
+  { id:'matcha', name:'抹茶绿', color:'#d8e8d3' },
+  { id:'sage', name:'鼠尾草绿', color:'#c5d0b4' },
+  { id:'moss', name:'苔绿', color:'#c8e6c9' },
+  { id:'seafoam', name:'海沫绿', color:'#b2dfdb' },
+  { id:'celadon', name:'青瓷绿', color:'#a8e6ce' }
+];
+function applySheetTint(id){
+  var body = document.body;
+  if(id === 'default') body.removeAttribute('data-sheetbg');
+  else body.setAttribute('data-sheetbg', id);
+  try{ localStorage.setItem(STORE.sheetBg, id); }catch(e){}
+  renderSheetBgRow(id);
+}
+function renderSheetBgRow(active){
+  var row = $('sheetBgRow');
+  if(!row) return;
+  row.innerHTML = '';
+  SHEET_TINTS.forEach(function(t){
+    var s = document.createElement('button');
+    s.type = 'button';
+    s.className = 'bg-swatch' + (t.id === active ? ' on' : '');
+    s.title = t.name;
+    s.setAttribute('aria-label', '弹框配色：' + t.name);
+    s.style.backgroundColor = t.color;
+    s.addEventListener('click', function(){ applySheetTint(t.id); });
+    row.appendChild(s);
+  });
+}
+
+
+/* ---------- 目标样式 ---------- */
+var GOAL_SKINS = [
+  { id:'rings', name:'圆环',
+    preview:'<svg viewBox="0 0 100 100" class="sk-pv"><circle cx="50" cy="50" r="40" fill="none" stroke="#0b8ed6" stroke-width="8" stroke-dasharray="226 251"></circle><circle cx="50" cy="50" r="30" fill="none" stroke="#0aa87a" stroke-width="8" stroke-dasharray="188 188"></circle><circle cx="50" cy="50" r="20" fill="none" stroke="#14919b" stroke-width="8" stroke-dasharray="113 126"></circle><text x="50" y="54" text-anchor="middle" font-size="16" font-weight="600" fill="#0c1a22">90%</text></svg>' },
+  { id:'mountain', name:'山峰',
+    preview:'<svg viewBox="0 0 100 100" class="sk-pv"><defs><linearGradient id="pvBody" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#63c98c"></stop><stop offset="1" stop-color="#c6f0d8"></stop></linearGradient><linearGradient id="pvLine" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3b9cd8"></stop><stop offset="1" stop-color="#8ecdf0"></stop></linearGradient><path id="pvMt" d="M 6 88 C 26 87 42 70 55 34 C 58 24 64 24 67 34 C 80 70 92 87 96 88 Z"></path><clipPath id="pvClip"><use href="#pvMt"></use></clipPath></defs><rect x="0" y="0" width="100" height="100" fill="#eef6fd"></rect><g clip-path="url(#pvClip)"><rect x="0" y="34" width="100" height="54" fill="url(#pvBody)" opacity=".9"></rect></g><path d="M 6 88 C 26 87 42 70 55 34 C 58 24 64 24 67 34 C 80 70 92 87 96 88 Z" fill="none" stroke="url(#pvLine)" stroke-width="3" stroke-linecap="round"></path><line x1="46" y1="52" x2="46" y2="43" stroke="#0c1a22" stroke-width="1.6"></line><path d="M 46 43 L 55 46 L 46 49 Z" fill="#f48fb1"></path><rect x="38" y="33.7" width="17" height="8.6" rx="4.3" fill="#fde9f1" stroke="#f6b6cc" stroke-width=".7"></rect><text x="46.5" y="40" text-anchor="middle" font-size="6.5" font-weight="600" fill="#d45f8d">90%</text></svg>' },
+];
+function loadGoalSkin(){
+  try{ var s = localStorage.getItem(STORE.goalSkin); if(s === 'rings' || s === 'mountain') return s; }catch(e){}
+  return 'rings';
+}
+function applyGoalSkin(id){
+  if(id === 'rings') document.body.removeAttribute('data-goalskin');
+  else document.body.setAttribute('data-goalskin', id);
+  try{ localStorage.setItem(STORE.goalSkin, id); }catch(e){}
+  renderGoalSkinRow(id);
+}
+function renderGoalSkinRow(active){
+  var row = $('goalSkinRow');
+  if(!row) return;
+  row.innerHTML = '';
+  GOAL_SKINS.forEach(function(s){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'goalskin-card' + (s.id === active ? ' on' : '');
+    b.title = s.name;
+    b.setAttribute('aria-label', '目标样式：' + s.name);
+    b.innerHTML = s.preview + '<span class="goalskin-name">' + s.name + '</span>';
+    b.addEventListener('click', function(){ applyGoalSkin(s.id); });
+    row.appendChild(b);
+  });
+}
+
+
+/* ---------- 环旋转速度 ---------- */
+var SPIN_BASE = { goal:20, pace:26, dist:34 }; // 1x durations in seconds
+function spinDurs(level){
+  return {
+    goal: Math.round(SPIN_BASE.goal / level * 100) / 100,
+    pace: Math.round(SPIN_BASE.pace / level * 100) / 100,
+    dist: Math.round(SPIN_BASE.dist / level * 100) / 100
+  };
 }
-function renderBgRow(active){
-  var row = $('bgRow');
-  if(!row) return;
-  row.innerHTML = '';
-  BGS.forEach(function(b){
-    var s = document.createElement('button');
-    s.type = 'button';
-    s.className = 'bg-swatch' + (b.id === active ? ' on' : '');
-    s.title = b.name;
-    s.setAttribute('aria-label', '背景：' + b.name);
-    s.style.backgroundColor = b.color;
-    s.style.backgroundImage = b.image;
-    s.style.backgroundSize = b.size;
-    s.addEventListener('click', function(){ applyBg(b.id); });
-    row.appendChild(s);
-  });
+function loadSpinSpeed(){
+  try{ var n = parseInt(localStorage.getItem(STORE.spin), 10); if(n >= 0 && n <= 5) return n; }catch(e){}
+  return 2;
 }
-
-
-
-/* ---------- 卡片配色 ---------- */
-var CARD_IDS = [
-  { id:'goal', label:'目标', el:'goalCard' },
-  { id:'stat', label:'统计', el:'statCard' },
-  { id:'cal', label:'日历', el:'calCard' },
-  { id:'trend', label:'趋势', el:'trendCard' }
-];
-var CARD_TINTS = [
-  { id:'default', name:'默认', css:'rgba(255,255,255,.95)' },
-  { id:'mist', name:'雾灰', css:'rgba(238,241,244,.95)' },
-  { id:'sakura', name:'樱花粉', css:'rgba(253,241,245,.95)' },
-  { id:'mint', name:'薄荷绿', css:'rgba(238,250,244,.95)' },
-  { id:'sky', name:'晴空蓝', css:'rgba(238,246,253,.95)' },
-  { id:'cream', name:'暖米', css:'rgba(250,245,236,.95)' },
-  { id:'lav', name:'淡紫', css:'rgba(244,241,251,.95)' },
-  { id:'grass', name:'浅草绿', css:'rgba(232,245,233,.95)' },
-  { id:'matcha', name:'抹茶绿', css:'rgba(216,232,211,.95)' },
-  { id:'sage', name:'鼠尾草绿', css:'rgba(197,208,180,.95)' },
-  { id:'moss', name:'苔绿', css:'rgba(200,230,201,.95)' },
-  { id:'seafoam', name:'海沫绿', css:'rgba(178,223,219,.95)' },
-  { id:'celadon', name:'青瓷绿', css:'rgba(168,230,206,.95)' }
-];
-var cardBg = loadCardBg();
-function loadCardBg(){
-  try{ var o = JSON.parse(localStorage.getItem(STORE.cardBg) || ''); if(o && typeof o === 'object') return o; }catch(e){}
-  return {};
-}
-function saveCardBg(){ try{ localStorage.setItem(STORE.cardBg, JSON.stringify(cardBg)); }catch(e){} }
-function applyCardTint(cardId, tintId){
-  var info = null;
-  CARD_IDS.forEach(function(x){ if(x.id === cardId) info = x; });
-  if(!info) return;
-  var el = $(info.el);
-  if(!el) return;
-  CARD_TINTS.forEach(function(t){ el.classList.remove('tint-' + t.id); });
-  if(tintId !== 'default') el.classList.add('tint-' + tintId);
-  cardBg[cardId] = tintId;
-  saveCardBg();
-  renderCardBgRows();
-  renderPresetChips();
-}
-function renderCardBgRows(){
-  var wrap = $('cardBgRows');
-  if(!wrap) return;
-  wrap.innerHTML = '';
-  CARD_IDS.forEach(function(info){
-    var row = document.createElement('div');
-    row.className = 'cbg-row';
-    var lab = document.createElement('span');
-    lab.className = 'cbg-label';
-    lab.textContent = info.label;
-    var sw = document.createElement('div');
-    sw.className = 'cbg-swatches';
-    var active = cardBg[info.id] || 'default';
-    CARD_TINTS.forEach(function(t){
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'cbg-swatch' + (t.id === active ? ' on' : '');
-      b.title = t.name;
-      b.style.backgroundColor = t.css;
-      b.addEventListener('click', function(){ applyCardTint(info.id, t.id); });
-      sw.appendChild(b);
-    });
-    row.appendChild(lab);
-    row.appendChild(sw);
-    wrap.appendChild(row);
-  });
-}
-
-/* ---------- 记录预选 ---------- */
-var PRESET_DEFAULTS = {
-  dist: ['3','5','10'],
-  dur: ['30','45','60'],
-  feel: ['😊 爽','😮‍💨 累','🥱 疲惫','☀️ 太轻松了','🔥 燃起来了']
-};
-var presets = loadPresets();
-function loadPresets(){
-  var o = null;
-  try{ o = JSON.parse(localStorage.getItem(STORE.presets) || ''); }catch(e){}
-  if(!o || typeof o !== 'object'){
-    return JSON.parse(JSON.stringify(PRESET_DEFAULTS));
+function applySpinSpeed(level){
+  var root = document.documentElement;
+  if(level === 0){
+    document.body.setAttribute('data-spin', 'off');
+  } else {
+    var d = spinDurs(level);
+    root.style.setProperty('--spin-goal', d.goal + 's');
+    root.style.setProperty('--spin-pace', d.pace + 's');
+    root.style.setProperty('--spin-dist', d.dist + 's');
+    document.body.removeAttribute('data-spin');
   }
-  ['dist','dur','feel'].forEach(function(k){
-    if(!Array.isArray(o[k]) || !o[k].length) o[k] = PRESET_DEFAULTS[k].slice();
-  });
-  return o;
+  try{ localStorage.setItem(STORE.spin, String(level)); }catch(e){}
+  renderSpinRow(level);
 }
-function savePresets(){ try{ localStorage.setItem(STORE.presets, JSON.stringify(presets)); }catch(e){} }
-function presetChipHtml(kind, val, idx){
-  var unit = kind === 'dist' ? ' km' : (kind === 'dur' ? ' min' : '');
-  return '<button type="button" class="chip preset-chip" data-kind="'+kind+'" data-idx="'+idx+'">'+val+unit+'</button>';
-}
-function renderPresetChips(){
-  var d = $('presetDist'), t = $('presetDur'), f = $('presetFeel');
-  if(d) d.innerHTML = presets.dist.map(function(v,i){ return presetChipHtml('dist', v, i); }).join('');
-  if(t) t.innerHTML = presets.dur.map(function(v,i){ return presetChipHtml('dur', v, i); }).join('');
-  if(f) f.innerHTML = presets.feel.map(function(v,i){ return presetChipHtml('feel', v, i); }).join('');
-}
-function renderPresetSettings(){
-  var wrap = $('presetSettings');
-  if(!wrap) return;
-  var groups = [
-    { key:'dist', label:'距离（km）' },
-    { key:'dur', label:'时长（分钟）' },
-    { key:'feel', label:'感受' }
-  ];
-  var html = '';
-  groups.forEach(function(g){
-    html += '<div class="preset-set-row"><div class="bg-lbl">' + g.label + '</div><div class="preset-set-inputs">';
-    presets[g.key].forEach(function(v, i){
-      html += '<input type="text" class="preset-in" data-key="' + g.key + '" data-idx="' + i + '" value="' + v.replace(/"/g,'&quot;') + '">';
-    });
-    html += '</div></div>';
-  });
-  html += '<button type="button" class="btn primary" id="presetSave">保存预选</button>';
-  wrap.innerHTML = html;
-}
-function applyPresetChip(kind, val){
-  if(kind === 'dist'){
-    var n = parseFloat(val);
-    $('fDist').value = isFinite(n) ? n : '';
-  } else if(kind === 'dur'){
-    var m = parseInt(val, 10);
-    $('fMin').value = isFinite(m) && m >= 0 ? m : '';
-    $('fSec').value = '0';
-  } else if(kind === 'feel'){
-    $('fNote').value = val;
-    $('noteCount').textContent = val.length + '/100';
-  }
-  updatePace();
-}
-function savePresetSettings(){
-  var inputs = document.querySelectorAll('#presetSettings .preset-in');
-  var bad = null;
-  inputs.forEach(function(inp){
-    var key = inp.getAttribute('data-key');
-    var idx = parseInt(inp.getAttribute('data-idx'), 10);
-    var v = inp.value.trim();
-    if(key === 'dist' || key === 'dur'){
-      var n = parseFloat(v);
-      if(!isFinite(n) || n <= 0){ bad = key; return; }
-      presets[key][idx] = String(n);
-    } else {
-      if(!v){ bad = key; return; }
-      presets[key][idx] = v;
-    }
-  });
-  if(bad){ toast('预选值要填有效的正数哦'); return; }
-  savePresets();
-  renderPresetSettings();
-  renderPresetChips();
-  toast('预选值已保存');
-}
-document.addEventListener('click', function(e){
-  var chip = e.target && e.target.closest ? e.target.closest('.preset-chip') : null;
-  if(!chip) return;
-  var kind = chip.getAttribute('data-kind');
-  var idx = parseInt(chip.getAttribute('data-idx'), 10);
-  if(!kind || isNaN(idx) || !presets[kind] || idx >= presets[kind].length) return;
-  applyPresetChip(kind, presets[kind][idx]);
-});
-document.addEventListener('click', function(e){
-  if(e.target && e.target.id === 'presetSave') savePresetSettings();
-});
-
-/* ---------- 弹框配色 ---------- */
-var SHEET_TINTS = [
-  { id:'default', name:'默认', color:'#ffffff' },
-  { id:'mist', name:'雾灰', color:'#eef1f4' },
-  { id:'sakura', name:'樱花粉', color:'#fdf1f5' },
-  { id:'mint', name:'薄荷绿', color:'#eefaf4' },
-  { id:'sky', name:'晴空蓝', color:'#eef6fd' },
-  { id:'cream', name:'暖米', color:'#faf5ec' },
-  { id:'lav', name:'淡紫', color:'#f4f1fb' },
-  { id:'grass', name:'浅草绿', color:'#e8f5e9' },
-  { id:'matcha', name:'抹茶绿', color:'#d8e8d3' },
-  { id:'sage', name:'鼠尾草绿', color:'#c5d0b4' },
-  { id:'moss', name:'苔绿', color:'#c8e6c9' },
-  { id:'seafoam', name:'海沫绿', color:'#b2dfdb' },
-  { id:'celadon', name:'青瓷绿', color:'#a8e6ce' }
-];
-function applySheetTint(id){
-  var body = document.body;
-  if(id === 'default') body.removeAttribute('data-sheetbg');
-  else body.setAttribute('data-sheetbg', id);
-  try{ localStorage.setItem(STORE.sheetBg, id); }catch(e){}
-  renderSheetBgRow(id);
-}
-function renderSheetBgRow(active){
-  var row = $('sheetBgRow');
+function renderSpinRow(active){
+  var row = $('spinRow');
   if(!row) return;
-  row.innerHTML = '';
-  SHEET_TINTS.forEach(function(t){
-    var s = document.createElement('button');
-    s.type = 'button';
-    s.className = 'bg-swatch' + (t.id === active ? ' on' : '');
-    s.title = t.name;
-    s.setAttribute('aria-label', '弹框配色：' + t.name);
-    s.style.backgroundColor = t.color;
-    s.addEventListener('click', function(){ applySheetTint(t.id); });
-    row.appendChild(s);
-  });
+  var slider = $('spinSlider');
+  if(slider) slider.value = active;
+  var label = $('spinLabel');
+  if(label) label.textContent = active === 0 ? '静止' : '\u00d7' + active;
 }
 
 /* ---------- 事件 ---------- */
@@ -2055,7 +2318,7 @@ function renderAbout(){
   });
 }
 
-bind('menuBtn', 'click', function(){ renderPresetSettings(); renderSheetBgRow(localStorage.getItem(STORE.sheetBg) || 'default'); openSheet($('menuSheet')); });
+bind('menuBtn', 'click', function(){ renderPresetSettings(); renderSheetBgRow(localStorage.getItem(STORE.sheetBg) || 'default'); renderGoalSkinRow(loadGoalSkin()); renderSpinRow(loadSpinSpeed()); openSheet($('menuSheet')); });
 bind('menuClose', 'click', closeSheets);
 bind('menuCheckUpdate', 'click', function(){ closeSheets(); callNative('checkUpdate'); });
 bind('menuBackup', 'click', function(){ closeSheets(); callNative('backupNow'); });
@@ -2101,6 +2364,12 @@ bind('aboutDone', 'click', closeSheets);
   });
   renderCardBgRows();
   try{ var savedSheetBg = localStorage.getItem(STORE.sheetBg) || "default"; if(savedSheetBg !== "default") document.body.setAttribute("data-sheetbg", savedSheetBg); }catch(e){}
+  var savedSkin = loadGoalSkin();
+  if(savedSkin !== 'rings') document.body.setAttribute('data-goalskin', savedSkin);
+  renderGoalSkinRow(savedSkin);
+    var spinSlider = $('spinSlider');
+  if(spinSlider) spinSlider.addEventListener('input', function(){ var n = parseInt(this.value, 10); applySpinSpeed(isNaN(n) ? 2 : n); });
+  applySpinSpeed(loadSpinSpeed());
   renderQuote();
   refreshAll();
   checkEggs();

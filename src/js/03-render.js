@@ -102,32 +102,89 @@ function bestPaceRing(){
   return best;
 }
 
-// 环形进度：pct 可超过 1（距离环不封顶），环满格、中心显示实际百分比
-// 同心三环：最外=距离(r44)、中间=配速(r36)、最内=整体(r28)
+// 目标样式：圆环 / 山峰 双皮肤，共用同一套指标计算
 var RING_C = { dist: 2 * Math.PI * 44, pace: 2 * Math.PI * 36, goal: 2 * Math.PI * 28 };
 function setRing(arcId, pctId, pct, C){
-  var clamped = Math.min(1, pct);
+  var clamped = Math.max(0, Math.min(1, pct));
   $(arcId).style.strokeDasharray = (clamped * C) + ' ' + C;
   $(pctId).textContent = Math.round(pct * 100) + '%';
   $(arcId).classList.toggle('done', pct >= 1);
 }
-
-function renderGoal(){
-  // 距离环（最外圈）：最长单次 / 10km，不封顶（超过 10km 继续累积）
-  var maxD = 0, maxDrec = null;
-  records.forEach(function(r){ if(r.distance && r.distance > maxD){ maxD = r.distance; maxDrec = r; } });
-  setRing('ringDistArc', 'ringDistPct', maxD / GOAL_KM, RING_C.dist);
-
-  // 配速环（中间圈）：历史最佳单次的配速含金量（考虑距离）
-  var bp = bestPaceRing();
-  setRing('ringPaceArc', 'ringPacePct', bp ? bp.pct : 0, RING_C.pace);
-
-  // 整体环（最内圈 + 中心）：历史最佳单次含金量（与之前保持一致）
-  var b = bestProof();
-  var goalPct = b ? b.pct : 0;
+function renderRings(distPct, pacePct, goalPct){
+  setRing('ringDistArc', 'ringDistPct', distPct, RING_C.dist);
+  setRing('ringPaceArc', 'ringPacePct', pacePct, RING_C.pace);
   setRing('ringGoalArc', 'ringGoalPct', goalPct, RING_C.goal);
   $('ringGoalPctSub').textContent = Math.round(goalPct * 100) + '%';
   $('ringGoalPct').classList.toggle('done', goalPct >= 1);
+}
+
+// 山峰：山影轮廓=距离（描边进度）、山体=配速（自山脚向上染色）、峰顶旗=整体（旗大小+百分比）
+var MT = { baseY: 88, cache: null };
+function mtMetrics(){
+  if(MT.cache) return MT.cache;
+  var L = $('mtPath').getTotalLength();
+  var minY = 1e9, peakFrac = 0;
+  for(var i = 0; i <= 120; i++){
+    var p = $('mtPath').getPointAtLength(L * i / 120);
+    if(p.y < minY){ minY = p.y; peakFrac = i / 120; }
+  }
+  MT.cache = { L: L, h: MT.baseY - minY, peakFrac: peakFrac };
+  return MT.cache;
+}
+function paintMountain(distPct, pacePct, goalPct){
+  var m = mtMetrics();
+
+  // 山影轮廓=距离：自山脚向上浮现（0 最低，100 填满）
+  var dDist = Math.max(0, Math.min(1, distPct));
+  var cutD = MT.baseY - dDist * m.h;
+  $('mtRiseRect').setAttribute('y', cutD.toFixed(1));
+  $('mtRiseRect').setAttribute('height', (dDist * m.h).toFixed(1));
+
+  // 山体=配速：自山脚向上染色（0 最低，100 填满）
+  var pPace = Math.max(0, Math.min(1, pacePct));
+  var cutP = MT.baseY - pPace * m.h;
+  $('mtBody').setAttribute('y', cutP.toFixed(1));
+  $('mtBody').setAttribute('height', (pPace * m.h).toFixed(1));
+  $('mtBodyGlow').setAttribute('y', cutP.toFixed(1));
+  $('mtBodyGlow').setAttribute('height', (pPace * m.h).toFixed(1));
+
+  // 峰顶旗=整体：旗子沿山坡攀升，位置代表进度（0 山脚，100 峰顶）
+  var gPct = Math.max(0, Math.min(1, goalPct));
+  var pt = $('mtPath').getPointAtLength(m.L * m.peakFrac * gPct);
+  var fx = Math.max(14, pt.x);
+  var fy = pt.y;
+  $('mtPole').setAttribute('x1', fx.toFixed(1));
+  $('mtPole').setAttribute('y1', fy.toFixed(1));
+  $('mtPole').setAttribute('x2', fx.toFixed(1));
+  $('mtPole').setAttribute('y2', (fy - 9).toFixed(1));
+  var d = 'M ' + fx.toFixed(1) + ' ' + (fy - 9).toFixed(1)
+        + ' L ' + (fx + 8).toFixed(1) + ' ' + (fy - 6).toFixed(1)
+        + ' L ' + fx.toFixed(1) + ' ' + (fy - 3).toFixed(1) + ' Z';
+  $('mtFlag').setAttribute('d', d);
+  $('mtFlagGlow').setAttribute('d', d);
+  $('mtPillBg').setAttribute('x', (fx - 8).toFixed(1));
+  $('mtPillBg').setAttribute('y', (fy - 18.3).toFixed(1));
+  $('mtPill').setAttribute('x', fx.toFixed(1));
+  $('mtPill').setAttribute('y', (fy - 13.3).toFixed(1));
+  $('mtPill').textContent = Math.round(goalPct * 100) + '%';
+}
+
+function renderGoal(){
+  // 距离：最长单次 / 10km，不封顶
+  var maxD = 0, maxDrec = null;
+  records.forEach(function(r){ if(r.distance && r.distance > maxD){ maxD = r.distance; maxDrec = r; } });
+  var distPct = maxD / GOAL_KM;
+
+  // 配速：历史最佳单次的配速含金量（考虑距离）
+  var bp = bestPaceRing();
+  var pacePct = bp ? bp.pct : 0;
+
+  // 整体：历史最佳单次含金量
+  var b = bestProof();
+  var goalPct = b ? b.pct : 0;
+
+  renderRings(distPct, pacePct, goalPct);
+  paintMountain(distPct, pacePct, goalPct);
 
   // 说明：最长距离 + 最佳配速那次
   $('ringNote').textContent =
@@ -139,9 +196,9 @@ function renderGoal(){
   records.forEach(function(r){ if(!last || r.ts > last.ts) last = r; });
   if(last && last.distance && last.dur){
     var lastPct = proofOf(last);
-    $('goalLastBar').style.width = (lastPct*100) + '%';
-    $('goalLastVal').textContent = Math.round(lastPct*100) + '%';
-  }else{
+    $('goalLastBar').style.width = (lastPct * 100) + '%';
+    $('goalLastVal').textContent = Math.round(lastPct * 100) + '%';
+  } else {
     $('goalLastBar').style.width = '0%';
     $('goalLastVal').textContent = '—';
   }

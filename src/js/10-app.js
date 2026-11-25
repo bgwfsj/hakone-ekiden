@@ -41,7 +41,7 @@ function renderAbout(){
   });
 }
 
-bind('menuBtn', 'click', function(){ renderPresetSettings(); renderSheetBgRow(localStorage.getItem(STORE.sheetBg) || 'default'); openSheet($('menuSheet')); });
+bind('menuBtn', 'click', function(){ renderPresetSettings(); renderSheetBgRow(localStorage.getItem(STORE.sheetBg) || 'default'); renderGoalSkinRow(loadGoalSkin()); renderSpinRow(loadSpinSpeed()); openSheet($('menuSheet')); });
 bind('menuClose', 'click', closeSheets);
 bind('menuCheckUpdate', 'click', function(){ closeSheets(); callNative('checkUpdate'); });
 bind('menuBackup', 'click', function(){ closeSheets(); callNative('backupNow'); });
@@ -87,6 +87,12 @@ bind('aboutDone', 'click', closeSheets);
   });
   renderCardBgRows();
   try{ var savedSheetBg = localStorage.getItem(STORE.sheetBg) || "default"; if(savedSheetBg !== "default") document.body.setAttribute("data-sheetbg", savedSheetBg); }catch(e){}
+  var savedSkin = loadGoalSkin();
+  if(savedSkin !== 'rings') document.body.setAttribute('data-goalskin', savedSkin);
+  renderGoalSkinRow(savedSkin);
+    var spinSlider = $('spinSlider');
+  if(spinSlider) spinSlider.addEventListener('input', function(){ var n = parseInt(this.value, 10); applySpinSpeed(isNaN(n) ? 2 : n); });
+  applySpinSpeed(loadSpinSpeed());
   renderQuote();
   refreshAll();
   checkEggs();

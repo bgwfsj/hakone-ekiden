@@ -171,9 +171,9 @@ body[data-bg="cross"]::before{background-color:#f7f8fa;background-image:repeatin
 .info-v{font-size:13px;color:var(--ink);line-height:1.6;}
 .info-eg{margin-top:12px;font-size:11.5px;color:var(--green);background:rgba(10,168,122,.06);border:1px solid rgba(10,168,122,.16);border-radius:10px;padding:8px 12px;text-align:center;}
 .poem{margin-top:10px;font-size:11.5px;color:var(--sub);letter-spacing:.04em;}
-/* ---------- 目标环 ---------- */
-.rings{position:relative;width:176px;height:176px;margin:6px auto 4px;}
-.rings svg{position:absolute;inset:0;width:100%;height:100%;display:block;transform:rotate(-90deg);}
+/* ---------- 目标样式 ---------- */
+.rings-wrap .rings{position:relative;width:176px;height:176px;margin:6px auto 4px;}
+.rings-wrap .rings svg{position:absolute;inset:0;width:100%;height:100%;display:block;transform:rotate(-90deg);}
 .ring-track{fill:none;stroke:rgba(13,32,45,.06);stroke-width:6;}
 .ring-arc{fill:none;stroke-width:6;stroke-linecap:round;stroke-dasharray:0 999;transition:stroke-dasharray .6s cubic-bezier(.22,.61,.36,1);}
 #ringDistArc{stroke:var(--blue);}
@@ -184,6 +184,43 @@ body[data-bg="cross"]::before{background-color:#f7f8fa;background-image:repeatin
 .ring-center-val{font-size:27px;font-weight:500;color:var(--ink);letter-spacing:-.02em;line-height:1;}
 .ring-center-val.done{color:#c98a2e;}
 .ring-center-lbl{font-size:10px;color:var(--weak);letter-spacing:.22em;}
+
+/* 圆环皮肤：三层环各自绕圆心旋转，速度不同（内快外慢，如行星公转） */
+.ring-arc{transform-box:view-box;transform-origin:50% 50%;}
+@keyframes ringSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+#ringDistArc{animation:ringSpin var(--spin-dist,17s) linear infinite;}
+#ringPaceArc{animation:ringSpin var(--spin-pace,13s) linear infinite reverse;}
+#ringGoalArc{animation:ringSpin var(--spin-goal,10s) linear infinite;}
+body[data-spin="off"] #ringDistArc,
+body[data-spin="off"] #ringPaceArc,
+body[data-spin="off"] #ringGoalArc{animation:none;}
+@media (prefers-reduced-motion: reduce){#ringDistArc,#ringPaceArc,#ringGoalArc{animation:none;}}
+
+/* 山峰 */
+.mountain-wrap .mountain{width:220px;margin:4px auto 2px;}
+.mountain-wrap .mountain svg{width:100%;height:auto;display:block;}
+.mt-mist{animation:mtDrift 7s ease-in-out infinite alternate;}
+.mt-glow{animation:mtBreathe 4s ease-in-out infinite;}
+@keyframes mtDrift{from{transform:translateX(-4px);}to{transform:translateX(6px);}}
+@keyframes mtBreathe{0%,100%{opacity:.55;}50%{opacity:.85;}}
+
+/* 皮肤切换 */
+#goalSkinMountain{display:none;}
+body[data-goalskin="mountain"] #goalSkinMountain{display:block;}
+body[data-goalskin="mountain"] #goalSkinRings{display:none;}
+
+/* 环旋转设置 */
+.spin-sec{margin-top:14px;}
+.spin-row{display:flex;align-items:center;gap:12px;}
+.spin-slider-wrap{flex:1;min-width:0;}
+#spinSlider{width:100%;height:5px;-webkit-appearance:none;appearance:none;border-radius:5px;background:linear-gradient(90deg,#d5e6f0,#d5e6f0);outline:none;margin:0;}
+#spinSlider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #0aa87a;box-shadow:0 2px 8px rgba(13,32,45,.18);cursor:pointer;}
+#spinSlider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #0aa87a;box-shadow:0 2px 8px rgba(13,32,45,.18);cursor:pointer;}
+.spin-ticks{display:flex;justify-content:space-between;padding:6px 4px 0;font-size:11.5px;color:var(--weak);letter-spacing:.02em;}
+.spin-val{min-width:40px;text-align:center;font-family:var(--mono,monospace);font-size:16px;font-weight:700;color:#0aa87a;}
+.spin-hint{font-size:10.5px;color:var(--weak);margin-top:6px;letter-spacing:.04em;}
+
+/* 共享图例与说明 */
 .ring-legend{display:flex;justify-content:center;gap:16px;margin:4px 0 6px;flex-wrap:wrap;}
 .lg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub);}
 .lg b{color:var(--ink);font-weight:500;}
@@ -191,8 +228,19 @@ body[data-bg="cross"]::before{background-color:#f7f8fa;background-image:repeatin
 .d-dist{background:var(--blue);}
 .d-pace{background:var(--green);}
 .d-goal{background:#14919b;}
+body[data-goalskin="mountain"] .d-dist{background:#3b9cd8;}
+body[data-goalskin="mountain"] .d-pace{background:#63c98c;}
+body[data-goalskin="mountain"] .d-goal{background:#f48fb1;}
 .ring-note{font-size:10.5px;color:var(--sub);text-align:center;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
+/* 目标样式选择器 */
+.goalskin-sec{margin-top:14px;}
+.goalskin-row{display:flex;gap:10px;}
+.goalskin-card{flex:1;border:1px solid var(--line);border-radius:14px;background:#fff;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-family:var(--sans);}
+.goalskin-card.on{border-color:#0aa87a;box-shadow:0 0 0 1px #0aa87a;}
+.sk-pv{width:66px;height:66px;display:block;}
+.goalskin-name{font-size:11px;color:var(--sub);}
+.goalskin-card.on .goalskin-name{color:var(--ink);font-weight:600;}
 /* ---------- 记录按钮 ---------- */
 .record-btn{
   display:block;width:100%;height:58px;margin:6px 0 16px;

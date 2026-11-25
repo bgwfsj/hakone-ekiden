@@ -31,25 +31,93 @@
         <button class="info-btn" id="goalInfo" aria-label="进度如何计算">?</button>
       </div>
     </div>
-    <div class="rings">
-      <svg viewBox="0 0 100 100" width="176" height="176" aria-hidden="true">
-        <circle class="ring-track" cx="50" cy="50" r="44"></circle>
-        <circle class="ring-arc" id="ringDistArc" cx="50" cy="50" r="44"></circle>
-        <circle class="ring-track" cx="50" cy="50" r="36"></circle>
-        <circle class="ring-arc" id="ringPaceArc" cx="50" cy="50" r="36"></circle>
-        <circle class="ring-track" cx="50" cy="50" r="28"></circle>
-        <circle class="ring-arc" id="ringGoalArc" cx="50" cy="50" r="28"></circle>
-      </svg>
-      <div class="ring-center">
-        <span class="ring-center-val mono" id="ringGoalPct">0%</span>
-        <span class="ring-center-lbl">整体进度</span>
+    <div class="rings-wrap" id="goalSkinRings">
+      <div class="rings">
+        <svg viewBox="0 0 100 100" width="176" height="176" aria-hidden="true">
+          <circle class="ring-track" cx="50" cy="50" r="44"></circle>
+          <circle class="ring-arc" id="ringDistArc" cx="50" cy="50" r="44"></circle>
+          <circle class="ring-track" cx="50" cy="50" r="36"></circle>
+          <circle class="ring-arc" id="ringPaceArc" cx="50" cy="50" r="36"></circle>
+          <circle class="ring-track" cx="50" cy="50" r="28"></circle>
+          <circle class="ring-arc" id="ringGoalArc" cx="50" cy="50" r="28"></circle>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-center-val mono" id="ringGoalPct">0%</span>
+          <span class="ring-center-lbl">整体进度</span>
+        </div>
       </div>
     </div>
+    <div class="mountain-wrap" id="goalSkinMountain">
+      <div class="mountain">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <defs>
+            <linearGradient id="mtSky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fdeef6"></stop>
+              <stop offset=".45" stop-color="#e9f3fc"></stop>
+              <stop offset="1" stop-color="#f7fafb"></stop>
+            </linearGradient>
+            <linearGradient id="mtRidge" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stop-color="#cfe2f2"></stop>
+              <stop offset="1" stop-color="#eaf3fb"></stop>
+            </linearGradient>
+            <linearGradient id="mtBody" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stop-color="#63c98c"></stop>
+              <stop offset=".7" stop-color="#8ee0b0"></stop>
+              <stop offset="1" stop-color="#c6f0d8"></stop>
+            </linearGradient>
+            <linearGradient id="mtLine" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stop-color="#3b9cd8"></stop>
+              <stop offset="1" stop-color="#8ecdf0"></stop>
+            </linearGradient>
+            <filter id="mtSoft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2"></feGaussianBlur></filter>
+            <filter id="mtGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2"></feGaussianBlur></filter>
+            <path id="mtPath" d="M 6 88 C 26 87 42 70 55 34 C 58 24 64 24 67 34 C 80 70 92 87 96 88 Z"></path>
+            <clipPath id="mtClip"><use href="#mtPath"></use></clipPath>
+            <clipPath id="mtRise"><rect id="mtRiseRect" x="0" y="88" width="100" height="0"></rect></clipPath>
+          </defs>
+          <rect x="0" y="0" width="100" height="100" fill="url(#mtSky)"></rect>
+          <circle cx="26" cy="20" r="2.2" fill="#fff" opacity=".7" filter="url(#mtSoft)"></circle>
+          <circle cx="88" cy="34" r="1.8" fill="#fde3ee" opacity=".7" filter="url(#mtSoft)"></circle>
+          <circle cx="14" cy="44" r="1.6" fill="#fff" opacity=".6" filter="url(#mtSoft)"></circle>
+          <circle cx="77" cy="20" r="9" fill="#fff" opacity=".9" filter="url(#mtSoft)"></circle>
+          <circle cx="77" cy="20" r="6" fill="#ffe9f2" opacity=".95" filter="url(#mtSoft)"></circle>
+          <path d="M -4 92 C 22 86 42 66 60 50 C 74 64 86 86 104 92 Z" fill="url(#mtRidge)" opacity=".9"></path>
+          <rect class="mt-mist" x="2" y="66" width="96" height="7" rx="3.5" fill="#fff" opacity=".5" filter="url(#mtSoft)"></rect>
+          <rect class="mt-mist" x="-6" y="76" width="110" height="6" rx="3" fill="#fff" opacity=".35" filter="url(#mtSoft)"></rect>
+          <g class="mt-glow">
+            <g clip-path="url(#mtClip)">
+              <rect id="mtBodyGlow" x="0" y="28" width="100" height="60" fill="url(#mtBody)" filter="url(#mtGlow)" opacity=".5"></rect>
+            </g>
+          </g>
+          <g clip-path="url(#mtClip)">
+            <rect id="mtBody" x="0" y="28" width="100" height="60" fill="url(#mtBody)" opacity=".92"></rect>
+          </g>
+          <g clip-path="url(#mtRise)">
+          <path id="mtOutlineGlow" d="M 6 88 C 26 87 42 70 55 34 C 58 24 64 24 67 34 C 80 70 92 87 96 88 Z" fill="none" stroke="url(#mtLine)" stroke-width="2.6" stroke-linecap="round" filter="url(#mtGlow)" opacity=".55" class="mt-glow"></path>
+          <path id="mtOutline" d="M 6 88 C 26 87 42 70 55 34 C 58 24 64 24 67 34 C 80 70 92 87 96 88 Z" fill="none" stroke="url(#mtLine)" stroke-width="2.2" stroke-linecap="round"></path>
+          </g>
+          <path d="M 6 88 C 26 87 42 70 55 34 C 58 24 64 24 67 34 C 80 70 92 87 96 88 Z" fill="none" stroke="#9fb8cc" stroke-width="1.4" stroke-dasharray="2 4" opacity=".55"></path>
+          <g>
+            <line id="mtPole" x1="61" y1="88" x2="61" y2="79" stroke="#0c1a22" stroke-width="1.4" stroke-linecap="round"></line>
+            <path id="mtFlagGlow" d="M 61 79 L 69 82 L 61 85 Z" fill="#f48fb1" filter="url(#mtSoft)"></path>
+            <path id="mtFlag" d="M 61 79 L 69 82 L 61 85 Z" fill="#f48fb1"></path>
+            <rect id="mtPillBg" x="53" y="69.7" width="16" height="8.6" rx="4.3" fill="#fde9f1" stroke="#f6b6cc" stroke-width=".7"></rect>
+            <text id="mtPill" x="61" y="74.7" text-anchor="middle" font-size="6.4" font-weight="600" fill="#d45f8d">0%</text>
+          </g>
+          <rect x="0" y="87" width="100" height="9" fill="#c8dcec" opacity=".5" filter="url(#mtSoft)"></rect>
+        </svg>
+      </div>
+    </div>
+
+    
+
     <div class="ring-legend">
       <span class="lg"><i class="dot d-dist"></i>距离 <b class="mono" id="ringDistPct">0%</b></span>
       <span class="lg"><i class="dot d-pace"></i>配速 <b class="mono" id="ringPacePct">0%</b></span>
       <span class="lg"><i class="dot d-goal"></i>整体 <b class="mono" id="ringGoalPctSub">0%</b></span>
     </div>
+
+
     <p class="ring-note mono" id="ringNote"></p>
     <div class="last-row">
       <span class="last-lbl">上一次</span>
@@ -214,15 +282,15 @@
   </div>
   <div class="sheet-body info-body">
     <div class="info-item">
-      <div class="info-k">距离环</div>
-      <div class="info-v">最长单次 &divide; 10 km；超过 10 km 继续累积（不封顶）</div>
+      <div class="info-k">距离</div>
+      <div class="info-v">最长单次 &divide; 10 km，超过 10 km 继续累积（不封顶）</div>
     </div>
     <div class="info-item">
-      <div class="info-k">配速环</div>
+      <div class="info-k">配速</div>
       <div class="info-v">距离权重 &times; (25% + 75% &times; 配速达成)，距离达 8 km 权重满分；取历史最佳单次</div>
     </div>
     <div class="info-item">
-      <div class="info-k">整体环</div>
+      <div class="info-k">整体</div>
       <div class="info-v">距离达成 &times; (50% + 50% &times; 配速达成)，取历史最佳单次</div>
     </div>
     <div class="info-item">
@@ -235,7 +303,7 @@
     </div>
     <div class="info-item">
       <div class="info-k">达成条件</div>
-      <div class="info-v">距离 &ge;10 km；配速环：距离 &ge;8 km 且配速 &le;6&#39;00&quot;</div>
+      <div class="info-v">距离 &ge;10 km；配速：距离 &ge;8 km 且配速 &le;6&#39;00&quot;</div>
     </div>
     <p class="info-eg mono">例：9 km @ 6&#39;00&quot; &rarr; 距离 90% / 配速 100% / 整体 90%<br>跑得快有加成：8 km @ 5&#39;45&quot; &rarr; 配速 105%</p>
   </div>
@@ -279,7 +347,23 @@
     <div class="bg-row" id="sheetBgRow"></div>
   </div>
 
-  <div class="preset-sec">
+    <div class="goalskin-sec">
+    <div class="bg-lbl">目标样式</div>
+    <div class="goalskin-row" id="goalSkinRow"></div>
+  </div>
+
+  <div class="spin-sec">
+    <div class="bg-lbl">环旋转</div>
+    <div class="spin-row" id="spinRow">
+      <div class="spin-slider-wrap">
+        <input type="range" id="spinSlider" min="0" max="5" step="1" value="2" aria-label="环旋转速度">
+        <div class="spin-ticks"><span>静止</span><span>&times;1</span><span>&times;2</span><span>&times;3</span><span>&times;4</span><span>&times;5</span></div>
+      </div>
+      <div class="spin-val" id="spinLabel">&times;2</div>
+    </div>
+    <div class="spin-hint">圆环皮肤的环，会绕圆心缓缓转动</div>
+  </div>
+<div class="preset-sec">
     <div class="bg-lbl">记录预选</div>
     <div id="presetSettings"></div>
   </div>

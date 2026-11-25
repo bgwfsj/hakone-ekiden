@@ -7,6 +7,8 @@ var STORE = {
   cardBg: 'hakone_cardbg_v1',
   presets: 'hakone_presets_v1',
   sheetBg: 'hakone_sheetbg_v1',
+  goalSkin: 'hakone_goalskin_v1',
+  spin: 'hakone_goalspin_v1',
   eggs: 'hakone_eggs_v1'
 };
 var SCHEMA_VERSION = 2; // 存档结构：v2 = { schema, records }，v1 = 纯数组
@@ -38,8 +40,9 @@ var quotes = [
   { t:'一步，又一步，十公里就在那里。', a:'跑步随想' }
 ];
 
-var APP_VERSION = '1.1.2';
+var APP_VERSION = '1.1.3';
 var APP_CHANGELOG = [
+  'v1.1.3 · 圆环皮肤新增动态旋转：三环各自绕圆心转动（配速环反向），菜单可拖滑块调速（静止～5 倍）',
   'v1.1.2 · 目标卡改为同心三环：距离/配速/整体；配速越快越接近满分（每快 15 秒 +5%）',
   'v1.1.1 · 目标卡移除累计距离进度条，界面更简洁',
   'v1.1.0 · 应用架构重构优化：存档升级为带版本号的新格式（旧数据自动兼容）、日历与统计渲染更流畅、代码模块化',
